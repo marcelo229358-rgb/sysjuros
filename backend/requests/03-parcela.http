@@ -1,0 +1,70 @@
+@baseUrl = http://localhost:3333
+@empresaId = 1030c59f-503a-4dfc-ad8b-66c802060cd0
+@token = {{login.response.body.token}}
+@contratoId = {{criarContrato.response.body.id}}
+@parcelaId = {{detalheContrato.response.body.parcelas[0].id}}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@empresademo.com.br",
+  "senha": "admin123",
+  "empresaId": "{{empresaId}}"
+}
+
+### Criar cliente + contrato (setup)
+# @name criarCliente
+POST {{baseUrl}}/clientes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Cliente Parcelas",
+  "cpfCnpj": "39053344705"
+}
+
+# @name criarContrato
+POST {{baseUrl}}/contratos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "clienteId": "{{criarCliente.response.body.id}}",
+  "numero": "CTR-PARCELA-001",
+  "valorTotal": 600,
+  "numParcelas": 2,
+  "dataInicio": "2025-12-01T00:00:00.000Z"
+}
+
+### Detalhe contrato (pegar IDs das parcelas)
+# @name detalheContrato
+GET {{baseUrl}}/contratos/{{contratoId}}
+Authorization: Bearer {{token}}
+
+### Listar parcelas
+GET {{baseUrl}}/parcelas?contratoId={{contratoId}}
+Authorization: Bearer {{token}}
+
+### Contas vencidas (recalcula juros/multa em tempo real)
+GET {{baseUrl}}/parcelas/vencidas
+Authorization: Bearer {{token}}
+
+### Agenda a vencer
+GET {{baseUrl}}/parcelas/a-vencer
+Authorization: Bearer {{token}}
+
+### Detalhe da parcela
+GET {{baseUrl}}/parcelas/{{parcelaId}}
+Authorization: Bearer {{token}}
+
+### Cancelar parcela manualmente
+PATCH {{baseUrl}}/parcelas/{{parcelaId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "CANCELADA"
+}

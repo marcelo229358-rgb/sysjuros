@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PerfilUsuario {
+  ADMIN
+  FINANCEIRO
+  OPERADOR
+}
+
+enum StatusContrato {
+  ATIVO
+  INADIMPLENTE
+  CANCELADO
+  QUITADO
+}
+
+enum StatusParcela {
+  PENDENTE
+  PAGA
+  VENCIDA
+  CANCELADA
+}
+
+model Empresa {
+  id            String   @id @default(uuid())
+  nome          String
+  cnpj          String?  @unique
+  email         String
+  telefone      String?
+  taxaJurosMes  Decimal  @default(1.0)
+  taxaMulta     Decimal  @default(2.0)
+  modoEscuro    Boolean  @default(false)
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  usuarios      Usuario[]
+  clientes      Cliente[]
+  contratos     Contrato[]
+  logs          LogAuditoria[]
+  notificacoes  Notificacao[]
+
+  @@map("empresas")
+}
+
+model Usuario {
+  id            String        @id @default(uuid())
+  empresaId     String
+  empresa       Empresa       @relation(fields: [empresaId], references: [id])
+  nome          String
+  email         String
+  senhaHash     String
+  perfil        PerfilUsuario @default(OPERADOR)
+  ativo         Boolean       @default(true)
+  criadoEm      DateTime      @default(now())
+  atualizadoEm  DateTime      @updatedAt
+
+  logs          LogAuditoria[]
+
+  @@unique([empresaId, email])
+  @@map("usuarios")
+}
+
+model Cliente {
+  id            String   @id @default(uuid())
+  empresaId     String
+  empresa       Empresa  @relation(fields: [empresaId], references: [id])
+  nome          String
+  cpfCnpj       String
+  email         String?
+  telefone      String?
+  endereco      String?
+  ativo         Boolean  @default(true)
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  contratos     Contrato[]
+
+  @@unique([empresaId, cpfCnpj])
+  @@map("clientes")
+}
+
+model Contrato {
+  id             String          @id @default(uuid())
+  empresaId      String
+  empresa        Empresa         @relation(fields: [empresaId], references: [id])
+  clienteId      String
+  cliente        Cliente         @relation(fields: [clienteId], references: [id])
+  numero         String
+  valorTotal     Decimal
+  numParcelas    Int
+  dataInicio     DateTime
+  status         StatusContrato  @default(ATIVO)
+  observacoes    String?
+  criadoEm       DateTime        @default(now())
+  atualizadoEm   DateTime        @updatedAt
+
+  parcelas       Parcela[]
+
+  @@unique([empresaId, numero])
+  @@map("contratos")
+}
+
+model Parcela {
+  id                String        @id @default(uuid())
+  empresaId         String
+  contratoId        String
+  contrato          Contrato      @relation(fields: [contratoId], references: [id])
+  numero            Int
+  valorOriginal     Decimal
+  valorMulta        Decimal       @default(0)
+  valorJuros        Decimal       @default(0)
+  valorAtualizado   Decimal
+  dataVencimento    DateTime
+  dataPagamento     DateTime?
+  status            StatusParcela @default(PENDENTE)
+  criadoEm          DateTime      @default(now())
+  atualizadoEm      DateTime      @updatedAt
+
+  pagamentos        Pagamento[]
+
+  @@index([empresaId, status])
+  @@index([empresaId, dataVencimento])
+  @@map("parcelas")
+}
+
+model Pagamento {
+  id             String   @id @default(uuid())
+  empresaId      String
+  parcelaId      String
+  parcela        Parcela  @relation(fields: [parcelaId], references: [id])
+  valorPago      Decimal
+  formaPagamento String
+  dataPagamento  DateTime @default(now())
+  observacoes    String?
+
+  @@map("pagamentos")
+}
+
+model LogAuditoria {
+  id          String   @id @default(uuid())
+  empresaId   String
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+  usuarioId   String
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+  acao        String
+  entidade    String
+  entidadeId  String
+  detalhes    Json?
+  criadoEm    DateTime @default(now())
+
+  @@index([empresaId, criadoEm])
+  @@map("logs_auditoria")
+}
+
+model Notificacao {
+  id          String   @id @default(uuid())
+  empresaId   String
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+  usuarioId   String?
+  titulo      String
+  mensagem    String
+  lida        Boolean  @default(false)
+  criadoEm    DateTime @default(now())
+
+  @@index([empresaId, lida])
+  @@map("notificacoes")
+}

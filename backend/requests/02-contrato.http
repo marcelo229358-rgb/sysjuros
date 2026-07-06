@@ -1,0 +1,79 @@
+@baseUrl = http://localhost:3333
+@empresaId = 1030c59f-503a-4dfc-ad8b-66c802060cd0
+@token = {{login.response.body.token}}
+@clienteId = {{criarCliente.response.body.id}}
+@contratoId = {{criarContrato.response.body.id}}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@empresademo.com.br",
+  "senha": "admin123",
+  "empresaId": "{{empresaId}}"
+}
+
+### Criar cliente (pré-requisito)
+# @name criarCliente
+POST {{baseUrl}}/clientes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Maria Contrato Teste",
+  "cpfCnpj": "11144477735",
+  "email": "maria@email.com"
+}
+
+### Criar contrato (gera parcelas automaticamente)
+# Valor R$ 1000 / 3 parcelas → última absorve centavos (333.33 + 333.33 + 333.34)
+# @name criarContrato
+POST {{baseUrl}}/contratos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "clienteId": "{{clienteId}}",
+  "numero": "CTR-2026-001",
+  "valorTotal": 1000,
+  "numParcelas": 3,
+  "dataInicio": "2026-01-15T00:00:00.000Z",
+  "observacoes": "Contrato de teste Fase 2"
+}
+
+### Listar contratos
+GET {{baseUrl}}/contratos?status=ATIVO
+Authorization: Bearer {{token}}
+
+### Detalhe com parcelas
+GET {{baseUrl}}/contratos/{{contratoId}}
+Authorization: Bearer {{token}}
+
+### Atualizar dados gerais
+PUT {{baseUrl}}/contratos/{{contratoId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "observacoes": "Observação atualizada"
+}
+
+### Tentativa inválida (valorTotal não pode mudar)
+PUT {{baseUrl}}/contratos/{{contratoId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "valorTotal": 2000
+}
+
+### Alterar status
+PATCH {{baseUrl}}/contratos/{{contratoId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "INADIMPLENTE"
+}

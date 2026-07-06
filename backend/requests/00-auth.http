@@ -1,0 +1,21 @@
+@baseUrl = http://localhost:3333
+@empresaId = 1030c59f-503a-4dfc-ad8b-66c802060cd0
+@token = {{login.response.body.token}}
+
+### Health check
+GET {{baseUrl}}/health
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@empresademo.com.br",
+  "senha": "admin123",
+  "empresaId": "{{empresaId}}"
+}
+
+### Me
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}

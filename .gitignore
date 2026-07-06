@@ -1,0 +1,30 @@
+# Dependências e build
+node_modules/
+dist/
+dist-ssr/
+
+# Ambiente (nunca commitar secrets)
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.production.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Testes E2E
+test-results/
+playwright-report/
+blob-report/
+
+# Prisma
+backend/prisma/*.db
+backend/prisma/*.db-journal

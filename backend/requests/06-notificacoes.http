@@ -1,0 +1,46 @@
+@baseUrl = http://localhost:3333
+@empresaId = 1030c59f-503a-4dfc-ad8b-66c802060cd0
+@token = {{login.response.body.token}}
+@parcelaId = {{listarParcelas.response.body.data[0].id}}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@empresademo.com.br",
+  "senha": "admin123",
+  "empresaId": "{{empresaId}}"
+}
+
+### Listar parcelas pendentes
+# @name listarParcelas
+GET {{baseUrl}}/parcelas?status=PENDENTE&limit=5
+Authorization: Bearer {{token}}
+
+### Listar notificações não lidas
+GET {{baseUrl}}/notificacoes
+Authorization: Bearer {{token}}
+
+### Marcar todas como lidas
+PATCH {{baseUrl}}/notificacoes/ler
+Authorization: Bearer {{token}}
+
+### Marcar uma notificação como lida
+# @name notificacaoId
+GET {{baseUrl}}/notificacoes
+Authorization: Bearer {{token}}
+
+###
+PATCH {{baseUrl}}/notificacoes/{{notificacaoId.response.body[0].id}}/ler
+Authorization: Bearer {{token}}
+
+### Enviar cobrança via WhatsApp (requer Evolution API configurada)
+POST {{baseUrl}}/notificacoes/whatsapp/cobranca
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "parcelaId": "{{parcelaId}}"
+}

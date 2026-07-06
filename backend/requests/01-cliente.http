@@ -1,0 +1,54 @@
+@baseUrl = http://localhost:3333
+@empresaId = 1030c59f-503a-4dfc-ad8b-66c802060cd0
+@token = {{login.response.body.token}}
+@clienteId = {{criarCliente.response.body.id}}
+
+### Login (reutiliza token)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@empresademo.com.br",
+  "senha": "admin123",
+  "empresaId": "{{empresaId}}"
+}
+
+### Criar cliente
+# @name criarCliente
+POST {{baseUrl}}/clientes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "João da Silva",
+  "cpfCnpj": "52998224725",
+  "email": "joao@email.com",
+  "telefone": "(11) 98888-7777",
+  "endereco": "Rua das Flores, 123"
+}
+
+### Listar clientes
+GET {{baseUrl}}/clientes?page=1&limit=20
+Authorization: Bearer {{token}}
+
+### Buscar por nome
+GET {{baseUrl}}/clientes?nome=João
+Authorization: Bearer {{token}}
+
+### Detalhe do cliente
+GET {{baseUrl}}/clientes/{{clienteId}}
+Authorization: Bearer {{token}}
+
+### Atualizar cliente
+PUT {{baseUrl}}/clientes/{{clienteId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "telefone": "(11) 97777-6666"
+}
+
+### Soft delete (só funciona sem contratos em aberto)
+DELETE {{baseUrl}}/clientes/{{clienteId}}
+Authorization: Bearer {{token}}

@@ -1,0 +1,49 @@
+@baseUrl = http://localhost:3333
+@empresaId = 1030c59f-503a-4dfc-ad8b-66c802060cd0
+@token = {{login.response.body.token}}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@empresademo.com.br",
+  "senha": "admin123",
+  "empresaId": "{{empresaId}}"
+}
+
+### Resumo financeiro (cards do topo)
+# Resposta inclui:
+# - totalAReceber (original, parcelas PENDENTE)
+# - totalVencidoOriginal (vencidas, sem juros/multa)
+# - totalEncargosVencidos (juros + multa das vencidas)
+# - totalVencido (original + encargos)
+# - taxaInadimplencia (totalVencidoOriginal / totalAReceber — nunca > 100%)
+GET {{baseUrl}}/dashboard/resumo
+Authorization: Bearer {{token}}
+
+### Recebimentos mensais (últimos 12 meses — gráfico de barras)
+GET {{baseUrl}}/dashboard/recebimentos-mensais
+Authorization: Bearer {{token}}
+
+### Contratos por status (gráfico de pizza)
+GET {{baseUrl}}/dashboard/contratos-por-status
+Authorization: Bearer {{token}}
+
+### Próximos vencimentos (7 dias)
+GET {{baseUrl}}/dashboard/proximos-vencimentos?dias=7
+Authorization: Bearer {{token}}
+
+### Próximos vencimentos (30 dias)
+GET {{baseUrl}}/dashboard/proximos-vencimentos?dias=30
+Authorization: Bearer {{token}}
+
+### Inadimplência + piores devedores
+# taxaInadimplencia usa base original; encargos vêm em totalEncargosVencidos
+GET {{baseUrl}}/dashboard/inadimplencia?limite=10
+Authorization: Bearer {{token}}
+
+### Inadimplência (top 5)
+GET {{baseUrl}}/dashboard/inadimplencia?limite=5
+Authorization: Bearer {{token}}

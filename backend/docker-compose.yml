@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sysjuros-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sysjuros
+      POSTGRES_PASSWORD: sysjuros123
+      POSTGRES_DB: sysjuros
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sysjuros -d sysjuros"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sysjuros-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3333
+      NODE_ENV: production
+      DATABASE_URL: postgresql://sysjuros:sysjuros123@postgres:5432/sysjuros?schema=public
+      JWT_SECRET: ${JWT_SECRET:-altere-esta-chave-em-producao}
+      JWT_EXPIRES_IN: 7d
+    ports:
+      - "3333:3333"
+
+volumes:
+  postgres_data:

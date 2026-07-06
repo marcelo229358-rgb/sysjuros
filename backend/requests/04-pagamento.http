@@ -1,0 +1,85 @@
+@baseUrl = http://localhost:3333
+@empresaId = 1030c59f-503a-4dfc-ad8b-66c802060cd0
+@token = {{login.response.body.token}}
+@parcelaId = {{detalheContrato.response.body.parcelas[0].id}}
+@valorAtualizado = {{detalheParcela.response.body.valorAtualizado}}
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@empresademo.com.br",
+  "senha": "admin123",
+  "empresaId": "{{empresaId}}"
+}
+
+### Setup: cliente + contrato vencido
+# @name criarCliente
+POST {{baseUrl}}/clientes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Cliente Pagamento",
+  "cpfCnpj": "15350946056"
+}
+
+# @name criarContrato
+POST {{baseUrl}}/contratos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "clienteId": "{{criarCliente.response.body.id}}",
+  "numero": "CTR-PAG-001",
+  "valorTotal": 300,
+  "numParcelas": 1,
+  "dataInicio": "2025-06-01T00:00:00.000Z"
+}
+
+# @name detalheContrato
+GET {{baseUrl}}/contratos/{{criarContrato.response.body.id}}
+Authorization: Bearer {{token}}
+
+### Obter valor atualizado da parcela (com juros/multa)
+# @name detalheParcela
+GET {{baseUrl}}/parcelas/{{parcelaId}}
+Authorization: Bearer {{token}}
+
+### Registrar pagamento integral
+# @name registrarPagamento
+POST {{baseUrl}}/pagamentos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "parcelaId": "{{parcelaId}}",
+  "valorPago": {{valorAtualizado}},
+  "formaPagamento": "pix",
+  "observacoes": "Pagamento de teste"
+}
+
+### Verificar contrato quitado automaticamente
+GET {{baseUrl}}/contratos/{{criarContrato.response.body.id}}
+Authorization: Bearer {{token}}
+
+### Histórico de pagamentos
+GET {{baseUrl}}/pagamentos
+Authorization: Bearer {{token}}
+
+### Detalhe do pagamento
+GET {{baseUrl}}/pagamentos/{{registrarPagamento.response.body.id}}
+Authorization: Bearer {{token}}
+
+### Pagamento parcial (deve falhar na Fase 2)
+POST {{baseUrl}}/pagamentos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "parcelaId": "{{parcelaId}}",
+  "valorPago": 1,
+  "formaPagamento": "dinheiro"
+}
