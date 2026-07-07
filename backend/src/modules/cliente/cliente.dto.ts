@@ -1,15 +1,19 @@
 import { z } from 'zod';
 import { normalizarCpfCnpj, validarCpfCnpj } from '../../shared/utils/cpfCnpj.util';
 
-const cpfCnpjSchema = z
+const cpfCnpjOpcionalSchema = z
   .string()
-  .min(1, 'CPF/CNPJ é obrigatório')
-  .transform(normalizarCpfCnpj)
-  .refine(validarCpfCnpj, 'CPF/CNPJ inválido');
+  .optional()
+  .or(z.literal(''))
+  .transform((val) => {
+    if (!val?.trim()) return undefined;
+    return normalizarCpfCnpj(val);
+  })
+  .refine((val) => val === undefined || validarCpfCnpj(val), 'CPF/CNPJ inválido');
 
 export const criarClienteSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter ao menos 2 caracteres'),
-  cpfCnpj: cpfCnpjSchema,
+  cpfCnpj: cpfCnpjOpcionalSchema,
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
   telefone: z.string().optional(),
   endereco: z.string().optional(),
@@ -17,7 +21,7 @@ export const criarClienteSchema = z.object({
 
 export const atualizarClienteSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter ao menos 2 caracteres').optional(),
-  cpfCnpj: cpfCnpjSchema.optional(),
+  cpfCnpj: cpfCnpjOpcionalSchema,
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
   telefone: z.string().optional(),
   endereco: z.string().optional(),

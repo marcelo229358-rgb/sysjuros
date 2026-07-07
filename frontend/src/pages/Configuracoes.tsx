@@ -9,7 +9,7 @@ import { formatarMoeda } from '../utils/formatarMoeda';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 export function Configuracoes() {
-  const [taxaJurosMes, setTaxaJurosMes] = useState('1');
+  const [taxaJurosMes, setTaxaJurosMes] = useState('30');
   const [taxaMulta, setTaxaMulta] = useState('2');
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);

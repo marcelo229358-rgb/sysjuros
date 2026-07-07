@@ -7,7 +7,7 @@ type ContratoExtrato = {
   numParcelas: number;
   dataInicio: Date;
   status: string;
-  cliente: { nome: string; cpfCnpj: string; telefone?: string | null };
+  cliente: { nome: string; cpfCnpj: string | null; telefone?: string | null };
   empresa: { nome: string };
   parcelas: Array<{
     numero: number;
@@ -60,7 +60,7 @@ export function extratoTemplate(contrato: ContratoExtrato): string {
       <div class="section">
         <p><strong>Contrato:</strong> ${contrato.numero}</p>
         <p><strong>Cliente:</strong> ${contrato.cliente.nome}</p>
-        <p><strong>CPF/CNPJ:</strong> ${contrato.cliente.cpfCnpj}</p>
+        <p><strong>CPF/CNPJ:</strong> ${contrato.cliente.cpfCnpj ?? '—'}</p>
         <p><strong>Data início:</strong> ${formatarData(contrato.dataInicio)}</p>
         <p><strong>Valor total:</strong> ${formatarMoeda(contrato.valorTotal)}</p>
         <p><strong>Parcelas:</strong> ${contrato.numParcelas}</p>

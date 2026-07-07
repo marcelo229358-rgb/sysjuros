@@ -33,7 +33,7 @@ model Empresa {
   cnpj          String?  @unique
   email         String
   telefone      String?
-  taxaJurosMes  Decimal  @default(1.0)
+  taxaJurosMes  Decimal  @default(30.0)
   taxaMulta     Decimal  @default(2.0)
   modoEscuro    Boolean  @default(false)
   criadoEm      DateTime @default(now())
@@ -71,7 +71,7 @@ model Cliente {
   empresaId     String
   empresa       Empresa  @relation(fields: [empresaId], references: [id])
   nome          String
-  cpfCnpj       String
+  cpfCnpj       String?
   email         String?
   telefone      String?
   endereco      String?

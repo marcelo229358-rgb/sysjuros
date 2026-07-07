@@ -5,15 +5,17 @@ import { CriarClienteDTO, AtualizarClienteDTO, ListarClientesQuery } from './cli
 
 export const clienteService = {
   async criar(empresaId: string, input: CriarClienteDTO) {
-    const existente = await clienteRepository.buscarPorCpfCnpj(input.cpfCnpj, empresaId);
+    if (input.cpfCnpj) {
+      const existente = await clienteRepository.buscarPorCpfCnpj(input.cpfCnpj, empresaId);
 
-    if (existente) {
-      throw new AppError('CPF/CNPJ já cadastrado nesta empresa', 409);
+      if (existente) {
+        throw new AppError('CPF/CNPJ já cadastrado nesta empresa', 409);
+      }
     }
 
     return clienteRepository.criar(empresaId, {
       nome: input.nome,
-      cpfCnpj: input.cpfCnpj,
+      cpfCnpj: input.cpfCnpj ?? null,
       email: input.email || null,
       telefone: input.telefone ?? null,
       endereco: input.endereco ?? null,

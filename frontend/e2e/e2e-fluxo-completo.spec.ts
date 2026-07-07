@@ -25,10 +25,11 @@ const CLIENTE_TESTE = {
 };
 
 const CONTRATO_TESTE = {
-  numero: `CT-E2E-${Date.now()}`,
   valorTotal: '1000',
   numParcelas: '3',
 };
+
+let numeroContratoE2E = '';
 
 test.describe.serial('Fluxo completo do sistema', () => {
   let page: Page;
@@ -101,7 +102,9 @@ test.describe.serial('Fluxo completo do sistema', () => {
 
     await page.selectOption('[data-testid="select-cliente"]', { label: CLIENTE_TESTE.nome });
 
-    await page.fill('[data-testid="input-numero-contrato"]', CONTRATO_TESTE.numero);
+    numeroContratoE2E = await page.locator('[data-testid="input-numero-contrato"]').inputValue();
+    expect(numeroContratoE2E).toMatch(/^CT-\d{8}-\d{6}$/);
+
     await page.fill('[data-testid="input-valor-total"]', CONTRATO_TESTE.valorTotal);
     await page.fill('[data-testid="input-num-parcelas"]', CONTRATO_TESTE.numParcelas);
 
@@ -112,7 +115,7 @@ test.describe.serial('Fluxo completo do sistema', () => {
     await expect(previewParcelas.nth(2)).toContainText('333,34');
 
     await page.click('[data-testid="btn-salvar-contrato"]');
-    await expect(page.locator(`text=${CONTRATO_TESTE.numero}`)).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator(`text=${numeroContratoE2E}`)).toBeVisible({ timeout: 5_000 });
   });
 
   test('5. Dashboard reflete o novo contrato', async () => {
@@ -131,7 +134,7 @@ test.describe.serial('Fluxo completo do sistema', () => {
 
   test('6. Registrar pagamento de uma parcela', async () => {
     await page.goto('/contratos');
-    await page.click(`[data-testid="link-contrato-${CONTRATO_TESTE.numero}"]`);
+    await page.click(`[data-testid="link-contrato-${numeroContratoE2E}"]`);
 
     const primeiraLinhaParcela = page.locator('[data-testid="linha-parcela"]').first();
     await primeiraLinhaParcela.locator('[data-testid="btn-registrar-pagamento"]').click();

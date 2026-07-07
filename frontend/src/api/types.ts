@@ -38,7 +38,7 @@ export interface PaginacaoResponse<T> {
 export interface Cliente {
   id: string;
   nome: string;
-  cpfCnpj: string;
+  cpfCnpj: string | null;
   email?: string | null;
   telefone?: string | null;
   endereco?: string | null;
@@ -53,7 +53,7 @@ export interface Contrato {
   dataInicio: string;
   status: StatusContrato;
   observacoes?: string | null;
-  cliente?: { id: string; nome: string; cpfCnpj: string };
+  cliente?: { id: string; nome: string; cpfCnpj: string | null };
   parcelas?: Parcela[];
 }
 
@@ -71,7 +71,7 @@ export interface Parcela {
   contrato?: {
     id: string;
     numero: string;
-    cliente: { id: string; nome: string; cpfCnpj: string };
+    cliente: { id: string; nome: string; cpfCnpj: string | null };
   };
 }
 

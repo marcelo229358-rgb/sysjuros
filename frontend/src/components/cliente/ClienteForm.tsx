@@ -25,7 +25,8 @@ export function ClienteForm({ cliente, onSubmit, onCancelar }: Props) {
     e.preventDefault();
     setErro('');
 
-    if (!validarCpfCnpj(cpfCnpj)) {
+    const cpfInformado = cpfCnpj.trim();
+    if (cpfInformado && !validarCpfCnpj(cpfInformado)) {
       setErro('CPF/CNPJ inválido');
       return;
     }
@@ -34,7 +35,7 @@ export function ClienteForm({ cliente, onSubmit, onCancelar }: Props) {
     try {
       await onSubmit({
         nome,
-        cpfCnpj: apenasDigitos(cpfCnpj),
+        ...(cpfInformado ? { cpfCnpj: apenasDigitos(cpfInformado) } : {}),
         email: email || undefined,
         telefone: telefone || undefined,
         endereco: endereco || undefined,
@@ -71,12 +72,11 @@ export function ClienteForm({ cliente, onSubmit, onCancelar }: Props) {
         </Col>
         <Col md={6}>
           <Form.Group>
-            <Form.Label>CPF/CNPJ *</Form.Label>
+            <Form.Label>CPF/CNPJ</Form.Label>
             <Form.Control
               data-testid="input-cpf-cnpj"
               value={cpfCnpj}
               onChange={(e) => setCpfCnpj(e.target.value)}
-              required
             />
           </Form.Group>
         </Col>

@@ -10,7 +10,7 @@ type PagamentoRecibo = {
     contrato: {
       numero: string;
       numParcelas: number;
-      cliente: { nome: string; cpfCnpj: string };
+      cliente: { nome: string; cpfCnpj: string | null };
       empresa: { nome: string };
     };
   };
@@ -37,7 +37,7 @@ export function reciboTemplate(pagamento: PagamentoRecibo): string {
       </div>
       <div class="section">
         <p><strong>Cliente:</strong> ${pagamento.parcela.contrato.cliente.nome}</p>
-        <p><strong>CPF/CNPJ:</strong> ${pagamento.parcela.contrato.cliente.cpfCnpj}</p>
+        <p><strong>CPF/CNPJ:</strong> ${pagamento.parcela.contrato.cliente.cpfCnpj ?? '—'}</p>
         <p><strong>Contrato:</strong> ${pagamento.parcela.contrato.numero}</p>
         <p><strong>Parcela:</strong> ${pagamento.parcela.numero}/${pagamento.parcela.contrato.numParcelas}</p>
         <p><strong>Data do pagamento:</strong> ${formatarData(pagamento.dataPagamento)}</p>

@@ -39,9 +39,16 @@ function gerarPreviewParcelas(valorTotal: number, numParcelas: number, dataInici
   return preview;
 }
 
+function gerarNumeroContrato(): string {
+  const agora = new Date();
+  const data = agora.toISOString().slice(0, 10).replace(/-/g, '');
+  const seq = String(agora.getTime()).slice(-6);
+  return `CT-${data}-${seq}`;
+}
+
 export function ContratoForm({ clientes, onSubmit, onCancelar }: Props) {
   const [clienteId, setClienteId] = useState('');
-  const [numero, setNumero] = useState('');
+  const [numero] = useState(gerarNumeroContrato);
   const [valorTotal, setValorTotal] = useState('');
   const [numParcelas, setNumParcelas] = useState('1');
   const [dataInicio, setDataInicio] = useState(new Date().toISOString().split('T')[0]);
@@ -101,13 +108,14 @@ export function ContratoForm({ clientes, onSubmit, onCancelar }: Props) {
         </Col>
         <Col md={6}>
           <Form.Group>
-            <Form.Label>Número do contrato *</Form.Label>
+            <Form.Label>Número do contrato</Form.Label>
             <Form.Control
               data-testid="input-numero-contrato"
               value={numero}
-              onChange={(e) => setNumero(e.target.value)}
-              required
+              readOnly
+              className="bg-light"
             />
+            <Form.Text className="text-muted">Gerado automaticamente</Form.Text>
           </Form.Group>
         </Col>
         <Col md={4}>

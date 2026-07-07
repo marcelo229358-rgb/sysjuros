@@ -48,7 +48,7 @@ export function ClienteTabela({ clientes, meta, onPaginaChange, onEditar, onExcl
 
           campos={[
 
-            { label: 'CPF/CNPJ', valor: cliente.cpfCnpj },
+            { label: 'CPF/CNPJ', valor: cliente.cpfCnpj ?? '—' },
 
             { label: 'E-mail', valor: cliente.email ?? '—' },
 
@@ -94,7 +94,7 @@ export function ClienteTabela({ clientes, meta, onPaginaChange, onEditar, onExcl
 
           <td>{cliente.nome}</td>
 
-          <td>{cliente.cpfCnpj}</td>
+          <td>{cliente.cpfCnpj ?? '—'}</td>
 
           <td className="d-none d-lg-table-cell">{cliente.email ?? '—'}</td>
 
