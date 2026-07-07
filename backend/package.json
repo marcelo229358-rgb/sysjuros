@@ -9,6 +9,7 @@
     "postinstall": "prisma generate",
     "start": "node dist/server.js",
     "start:render": "prisma migrate deploy && prisma db seed && node dist/server.js",
+    "start:prod": "sh scripts/docker-entrypoint.sh",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",

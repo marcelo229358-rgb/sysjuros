@@ -1,0 +1,104 @@
+# =============================================================================
+# SysJuros — Docker Compose (produção)
+# VPS com Nginx Proxy Manager na rede externa "proxy-network"
+#
+# Uso:
+#   cp .env.prod.example .env.prod   # preencher na VPS
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#
+# NPM (Proxy Hosts):
+#   Frontend → http://sysjuros-frontend:80
+#   API      → http://sysjuros-backend:3333
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — persistência de dados (sem porta exposta no host)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: sysjuros-postgres
+    restart: always
+    networks:
+      - proxy-network
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Backend API — Node.js + Prisma + Puppeteer (PDF)
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sysjuros-backend
+    restart: always
+    networks:
+      - proxy-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3333
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      FRONTEND_URL: ${FRONTEND_URL}
+      EVOLUTION_API_URL: ${EVOLUTION_API_URL}
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY}
+      EVOLUTION_INSTANCE: ${EVOLUTION_INSTANCE}
+      # Seed só roda se RUN_SEED=true (uso manual, uma vez)
+      RUN_SEED: ${RUN_SEED:-false}
+    expose:
+      - '3333'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3333/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ---------------------------------------------------------------------------
+  # Frontend — build Vite + Nginx (arquivos estáticos)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_EMPRESA_ID: ${VITE_EMPRESA_ID}
+    container_name: sysjuros-frontend
+    restart: always
+    networks:
+      - proxy-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    expose:
+      - '80'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost/']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+networks:
+  proxy-network:
+    external: true
+
+volumes:
+  postgres_data:
+    name: sysjuros_postgres_data

@@ -8,8 +8,9 @@ import { useAuth } from '../contexts/AuthContext';
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('admin@empresademo.com.br');
-  const [senha, setSenha] = useState('admin123');
+  const isDev = import.meta.env.DEV;
+  const [email, setEmail] = useState(isDev ? 'admin@empresademo.com.br' : '');
+  const [senha, setSenha] = useState(isDev ? 'admin123' : '');
   const [empresaId, setEmpresaId] = useState(import.meta.env.VITE_EMPRESA_ID ?? '');
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(false);

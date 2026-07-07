@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxdamage1 \
     libxrandr2 \
     xdg-utils \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json* ./
@@ -46,7 +47,10 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/dist ./dist
 COPY prisma ./prisma
+COPY scripts ./scripts
+
+RUN chmod +x scripts/docker-entrypoint.sh
 
 EXPOSE 3333
 
-CMD ["npm", "run", "start:render"]
+CMD ["npm", "run", "start:prod"]
