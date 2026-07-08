@@ -36,6 +36,7 @@ model Empresa {
   taxaJurosMes  Decimal  @default(30.0)
   taxaMulta     Decimal  @default(2.0)
   modoEscuro    Boolean  @default(false)
+  ativo         Boolean  @default(true)
   criadoEm      DateTime @default(now())
   atualizadoEm  DateTime @updatedAt
 
@@ -56,6 +57,7 @@ model Usuario {
   email         String
   senhaHash     String
   perfil        PerfilUsuario @default(OPERADOR)
+  isMaster      Boolean       @default(false)
   ativo         Boolean       @default(true)
   criadoEm      DateTime      @default(now())
   atualizadoEm  DateTime      @updatedAt
@@ -165,9 +167,12 @@ model Notificacao {
   usuarioId   String?
   titulo      String
   mensagem    String
+  tipo        String?
+  parcelaId   String?
   lida        Boolean  @default(false)
   criadoEm    DateTime @default(now())
 
   @@index([empresaId, lida])
+  @@index([empresaId, tipo, parcelaId])
   @@map("notificacoes")
 }

@@ -13,6 +13,9 @@ const envSchema = z.object({
   EVOLUTION_API_KEY: z.string().optional(),
   EVOLUTION_INSTANCE: z.string().default('sysjuros'),
   FRONTEND_URL: z.string().optional(),
+  MASTER_EMAIL: z.string().email().optional().or(z.literal('')),
+  MASTER_PASSWORD: z.string().optional(),
+  NOTIFICACAO_DIAS_ANTECEDENCIA: z.coerce.number().int().min(1).max(30).default(1),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -33,4 +33,28 @@ export const notificacaoApi = {
     );
     return response.data;
   },
+
+  statusWhatsapp: async () => {
+    const response = await api.get<{
+      configurado: boolean;
+      instancia: string;
+      conectado: boolean;
+      estado: string;
+      managerUrl?: string;
+    }>('/notificacoes/whatsapp/status');
+    return response.data;
+  },
+
+  executarLembretes: async () => {
+    const response = await api.post<{
+      diasAntecedencia: number;
+      parcelasEncontradas: number;
+      notificacoesCriadas: number;
+      whatsappEnviados: number;
+      whatsappIgnorados: number;
+      errosWhatsapp: number;
+      whatsappConfigurado: boolean;
+    }>('/notificacoes/lembretes/executar');
+    return response.data;
+  },
 };

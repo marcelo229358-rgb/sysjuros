@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { PerfilUsuario } from '@prisma/client';
 import { notificacaoController, perfisWhatsapp } from './notificacao.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { tenantMiddleware } from '../../middlewares/tenant.middleware';
@@ -19,6 +20,18 @@ notificacaoRoutes.patch('/ler', (req, res, next) =>
 
 notificacaoRoutes.patch('/:id/ler', (req, res, next) =>
   notificacaoController.marcarComoLida(req, res).catch(next)
+);
+
+notificacaoRoutes.get(
+  '/whatsapp/status',
+  permissaoMiddleware(...perfisWhatsapp),
+  (req, res, next) => notificacaoController.statusWhatsapp(req, res).catch(next)
+);
+
+notificacaoRoutes.post(
+  '/lembretes/executar',
+  permissaoMiddleware(PerfilUsuario.ADMIN),
+  (req, res, next) => notificacaoController.executarLembretes(req, res).catch(next)
 );
 
 notificacaoRoutes.post(

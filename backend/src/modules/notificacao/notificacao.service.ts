@@ -75,4 +75,14 @@ export const notificacaoService = {
 
     return notificacao;
   },
+
+  async statusWhatsapp() {
+    const { obterStatusWhatsapp } = await import('./whatsapp.client');
+    return obterStatusWhatsapp();
+  },
+
+  async executarLembretesVencimento() {
+    const { processarLembretesVencimento } = await import('./lembreteVencimento.service');
+    return processarLembretesVencimento();
+  },
 };

@@ -8,8 +8,12 @@ export const authService = {
   async login(input: LoginInput) {
     const usuario = await usuarioRepository.findByEmailAndEmpresa(input.email, input.empresaId);
 
-    if (!usuario || !usuario.ativo) {
+    if (!usuario || !usuario.ativo || usuario.isMaster) {
       throw new AppError('Credenciais inválidas', 401);
+    }
+
+    if (!usuario.empresa.ativo) {
+      throw new AppError('Empresa desativada. Contate o suporte.', 403);
     }
 
     const senhaValida = await comparePassword(input.senha, usuario.senhaHash);

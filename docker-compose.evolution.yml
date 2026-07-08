@@ -1,0 +1,76 @@
+# Evolution API — WhatsApp (SysJuros)
+# Uso: docker compose -f docker-compose.evolution.yml --env-file evolution.env up -d
+#
+# Depois:
+# 1. Acesse http://SEU_IP:3000 (Evolution Manager) ou API em :8080
+# 2. Escaneie o QR Code da instância "sysjuros"
+# 3. Configure no backend/.env ou .env.prod:
+#    EVOLUTION_API_URL=http://localhost:8080  (ou http://evolution-api:8080 no Docker)
+#    EVOLUTION_API_KEY=mesma chave abaixo
+#    EVOLUTION_INSTANCE=sysjuros
+
+services:
+  evolution-redis:
+    image: redis:7-alpine
+    container_name: sysjuros-evolution-redis
+    restart: unless-stopped
+    networks:
+      - evolution-net
+
+  evolution-postgres:
+    image: postgres:16-alpine
+    container_name: sysjuros-evolution-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${EVOLUTION_POSTGRES_DB:-evolution}
+      POSTGRES_USER: ${EVOLUTION_POSTGRES_USER:-evolution}
+      POSTGRES_PASSWORD: ${EVOLUTION_POSTGRES_PASSWORD:-evolution123}
+    volumes:
+      - evolution_postgres_data:/var/lib/postgresql/data
+    networks:
+      - evolution-net
+
+  evolution-api:
+    image: evoapicloud/evolution-api:latest
+    container_name: sysjuros-evolution-api
+    restart: unless-stopped
+    depends_on:
+      - evolution-redis
+      - evolution-postgres
+    ports:
+      - "${EVOLUTION_PORT:-8080}:8080"
+    environment:
+      SERVER_URL: ${EVOLUTION_SERVER_URL:-http://localhost:8080}
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:-sysjuros-evolution-key}
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://${EVOLUTION_POSTGRES_USER:-evolution}:${EVOLUTION_POSTGRES_PASSWORD:-evolution123}@evolution-postgres:5432/${EVOLUTION_POSTGRES_DB:-evolution}?schema=public
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://evolution-redis:6379/0
+      DEL_INSTANCE: "false"
+    volumes:
+      - evolution_instances:/evolution/instances
+    networks:
+      - evolution-net
+      - proxy-network
+
+  evolution-manager:
+    image: evoapicloud/evolution-manager:latest
+    container_name: sysjuros-evolution-manager
+    restart: unless-stopped
+    depends_on:
+      - evolution-api
+    ports:
+      - "${EVOLUTION_MANAGER_PORT:-3000}:80"
+    networks:
+      - evolution-net
+
+networks:
+  evolution-net:
+    driver: bridge
+  proxy-network:
+    external: true
+
+volumes:
+  evolution_postgres_data:
+  evolution_instances:

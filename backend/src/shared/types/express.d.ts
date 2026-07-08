@@ -6,6 +6,8 @@ declare global {
       usuarioId?: string;
       empresaId?: string;
       perfil?: PerfilUsuario;
+      masterUsuarioId?: string;
+      masterEmail?: string;
     }
   }
 }

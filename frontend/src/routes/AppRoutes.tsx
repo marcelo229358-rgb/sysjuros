@@ -11,11 +11,23 @@ import { Agenda } from '../pages/Agenda';
 import { Relatorios } from '../pages/Relatorios';
 import { Configuracoes } from '../pages/Configuracoes';
 import { Usuarios } from '../pages/Usuarios';
+import { MasterLogin } from '../pages/master/MasterLogin';
+import { MasterPainel } from '../pages/master/MasterPainel';
+import { MasterRotaProtegida } from './MasterRotaProtegida';
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/master/login" element={<MasterLogin />} />
+      <Route
+        path="/master"
+        element={
+          <MasterRotaProtegida>
+            <MasterPainel />
+          </MasterRotaProtegida>
+        }
+      />
 
       <Route
         element={

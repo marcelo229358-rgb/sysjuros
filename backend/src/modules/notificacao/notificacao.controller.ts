@@ -36,6 +36,16 @@ export const notificacaoController = {
     );
     return res.json(notificacao);
   },
+
+  async statusWhatsapp(_req: Request, res: Response) {
+    const status = await notificacaoService.statusWhatsapp();
+    return res.json(status);
+  },
+
+  async executarLembretes(_req: Request, res: Response) {
+    const resultado = await notificacaoService.executarLembretesVencimento();
+    return res.json(resultado);
+  },
 };
 
 export const perfisWhatsapp = [PerfilUsuario.ADMIN, PerfilUsuario.FINANCEIRO] as const;

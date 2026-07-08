@@ -1,41 +1,25 @@
 import cron from 'node-cron';
-import { StatusParcela } from '@prisma/client';
-import { prisma } from '../config/database';
-import { formatarData } from '../shared/utils/formatar.util';
+import { processarLembretesVencimento } from '../modules/notificacao/lembreteVencimento.service';
+import { env } from '../config/env';
 
 export function iniciarJobNotificacoes() {
   cron.schedule('0 8 * * *', async () => {
-    console.log('[JOB] Verificando parcelas a vencer...');
+    console.log('[JOB] Verificando parcelas com vencimento amanhã...');
 
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    const em3dias = new Date(hoje);
-    em3dias.setDate(em3dias.getDate() + 3);
-    em3dias.setHours(23, 59, 59, 999);
-
-    const parcelas = await prisma.parcela.findMany({
-      where: {
-        status: StatusParcela.PENDENTE,
-        dataVencimento: { lte: em3dias, gte: hoje },
-      },
-      include: { contrato: { include: { cliente: true } } },
-    });
-
-    for (const parcela of parcelas) {
-      await prisma.notificacao.create({
-        data: {
-          empresaId: parcela.empresaId,
-          titulo: 'Parcela vencendo em breve',
-          mensagem:
-            `${parcela.contrato.cliente.nome} — Contrato ${parcela.contrato.numero}, ` +
-            `parcela ${parcela.numero}, vence em ${formatarData(parcela.dataVencimento)}.`,
-        },
-      });
+    try {
+      const resultado = await processarLembretesVencimento();
+      console.log(
+        `[JOB] Lembretes: ${resultado.notificacoesCriadas} notificações, ` +
+          `${resultado.whatsappEnviados} WhatsApp enviados, ` +
+          `${resultado.whatsappIgnorados} ignorados, ` +
+          `${resultado.errosWhatsapp} erros.`
+      );
+    } catch (err) {
+      console.error('[JOB] Erro ao processar lembretes:', err);
     }
-
-    console.log(`[JOB] ${parcelas.length} notificações geradas.`);
   });
 
-  console.log('[JOB] Agendamento de notificações ativo (diário às 08:00).');
+  console.log(
+    `[JOB] Agendamento de lembretes ativo (diário às 08:00, ${env.NOTIFICACAO_DIAS_ANTECEDENCIA} dia(s) antes do vencimento).`
+  );
 }

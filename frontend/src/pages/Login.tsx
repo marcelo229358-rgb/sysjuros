@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
@@ -8,10 +8,18 @@ import { useAuth } from '../contexts/AuthContext';
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isDev = import.meta.env.DEV;
   const [email, setEmail] = useState(isDev ? 'admin@empresademo.com.br' : '');
   const [senha, setSenha] = useState(isDev ? 'admin123' : '');
-  const [empresaId, setEmpresaId] = useState(import.meta.env.VITE_EMPRESA_ID ?? '');
+  const [empresaId, setEmpresaId] = useState(
+    searchParams.get('empresaId') ?? import.meta.env.VITE_EMPRESA_ID ?? ''
+  );
+
+  useEffect(() => {
+    const id = searchParams.get('empresaId');
+    if (id) setEmpresaId(id);
+  }, [searchParams]);
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(false);
 
