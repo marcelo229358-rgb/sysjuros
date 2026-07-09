@@ -112,6 +112,7 @@ export function ContratoDetalhe() {
             parcelas={contrato.parcelas ?? []}
             mostrarPagamento={podeRegistrarPagamento}
             onRegistrarPagamento={abrirPagamento}
+            onParcelaAtualizada={carregar}
           />
         </Card.Body>
       </Card>

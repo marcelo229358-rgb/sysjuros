@@ -5,6 +5,7 @@ import {
   atualizarContratoSchema,
   atualizarStatusContratoSchema,
   listarContratosQuerySchema,
+  amortizarContratoSchema,
 } from './contrato.dto';
 import { parseBody, parseQuery } from '../../shared/utils/zod.util';
 import { getRouteParam } from '../../shared/utils/request.util';
@@ -36,6 +37,16 @@ export const contratoController = {
   async atualizarStatus(req: Request, res: Response) {
     const input = parseBody(atualizarStatusContratoSchema, req.body);
     const contrato = await contratoService.atualizarStatus(
+      getRouteParam(req, 'id'),
+      req.empresaId!,
+      input
+    );
+    return res.json(contrato);
+  },
+
+  async amortizar(req: Request, res: Response) {
+    const input = parseBody(amortizarContratoSchema, req.body);
+    const contrato = await contratoService.amortizar(
       getRouteParam(req, 'id'),
       req.empresaId!,
       input

@@ -10,6 +10,8 @@ export const contratoRepository = {
     valorTotal: number;
     numParcelas: number;
     dataInicio: Date;
+    taxaJurosMes?: number | null;
+    taxaMulta?: number | null;
     observacoes?: string | null;
   }) {
     return prisma.contrato.create({
@@ -20,6 +22,8 @@ export const contratoRepository = {
         valorTotal: new Decimal(data.valorTotal),
         numParcelas: data.numParcelas,
         dataInicio: data.dataInicio,
+        taxaJurosMes: data.taxaJurosMes != null ? new Decimal(data.taxaJurosMes) : null,
+        taxaMulta: data.taxaMulta != null ? new Decimal(data.taxaMulta) : null,
         observacoes: data.observacoes ?? null,
       },
     });

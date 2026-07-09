@@ -30,4 +30,9 @@ export const dashboardController = {
     const dados = await dashboardService.inadimplencia(req.empresaId!, query.limite);
     return res.json(dados);
   },
+
+  async saudePagadores(req: Request, res: Response) {
+    const dados = await dashboardService.saudePagadores(req.empresaId!);
+    return res.json(dados);
+  },
 };

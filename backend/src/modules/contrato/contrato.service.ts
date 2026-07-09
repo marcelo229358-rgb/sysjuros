@@ -7,43 +7,90 @@ import { AppError } from '../../shared/errors/AppError';
 import { adicionarMeses } from '../../shared/utils/date.util';
 import { buildPaginacaoMeta } from '../../shared/utils/pagination.util';
 import {
+  calcularAmortizacao,
+  ModoAmortizacao,
+} from '../../shared/utils/amortizacao.util';
+import { gerarParcelasComJuros } from '../../shared/utils/parcelasComJuros.util';
+import {
   CriarContratoDTO,
   AtualizarContratoDTO,
   AtualizarStatusContratoDTO,
   ListarContratosQuery,
+  AmortizarContratoDTO,
 } from './contrato.dto';
 
-function gerarParcelas(
+function gerarParcelasPadrao(
+  dados: CriarContratoDTO,
+  empresaId: string,
+  contratoId: string,
+  valorBase: number,
+  taxaJurosMes: number
+) {
+  const geradas = gerarParcelasComJuros(
+    valorBase,
+    dados.numParcelas,
+    dados.dataInicio,
+    taxaJurosMes,
+    adicionarMeses
+  );
+
+  return geradas.map((p) => ({
+    empresaId,
+    contratoId,
+    numero: p.numero,
+    valorOriginal: p.valorTotal,
+    valorAtualizado: p.valorTotal,
+    dataVencimento: p.vencimento,
+    status: StatusParcela.PENDENTE,
+  }));
+}
+
+function gerarParcelasCustomizadas(
   dados: CriarContratoDTO,
   empresaId: string,
   contratoId: string
 ) {
-  const valorParcela = dados.valorTotal / dados.numParcelas;
-  const valorParcelaArredondado = Math.round(valorParcela * 100) / 100;
+  if (!dados.parcelas?.length) return [];
 
-  const parcelas = [];
-  let somaGerada = 0;
+  return dados.parcelas.map((p) => ({
+    empresaId,
+    contratoId,
+    numero: p.numero,
+    valorOriginal: p.valorOriginal,
+    valorAtualizado: p.valorOriginal,
+    dataVencimento: p.dataVencimento,
+    status: StatusParcela.PENDENTE,
+  }));
+}
 
-  for (let i = 1; i <= dados.numParcelas; i++) {
-    const dataVencimento = adicionarMeses(dados.dataInicio, i - 1);
+async function aplicarAmortizacaoNoContrato(
+  contratoId: string,
+  empresaId: string,
+  valor: number,
+  modo: ModoAmortizacao,
+  excluirParcelaId?: string,
+  parcelaNumero?: number
+) {
+  const pendentes = await parcelaRepository.listarPendentesPorContrato(contratoId, empresaId);
+  const alvo = pendentes.filter((p) => p.id !== excluirParcelaId);
 
-    const valorOriginal =
-      i === dados.numParcelas ? dados.valorTotal - somaGerada : valorParcelaArredondado;
+  const atualizacoes = calcularAmortizacao(
+    alvo.map((p) => ({
+      id: p.id,
+      numero: p.numero,
+      valorOriginal: Number(p.valorOriginal),
+    })),
+    valor,
+    modo,
+    parcelaNumero
+  );
 
-    somaGerada += valorOriginal;
-
-    parcelas.push({
-      empresaId,
-      contratoId,
-      numero: i,
-      valorOriginal,
-      valorAtualizado: valorOriginal,
-      dataVencimento,
-      status: StatusParcela.PENDENTE,
+  for (const item of atualizacoes) {
+    await parcelaRepository.atualizar(item.id, empresaId, {
+      valorOriginal: item.valorOriginal,
+      valorAtualizado: item.valorAtualizado,
     });
   }
-
-  return parcelas;
 }
 
 export const contratoService = {
@@ -60,6 +107,8 @@ export const contratoService = {
       throw new AppError('Número de contrato já cadastrado nesta empresa', 409);
     }
 
+    const valorBase = input.valorTotal;
+
     const contrato = await prisma.$transaction(async () => {
       const novoContrato = await contratoRepository.criar({
         empresaId,
@@ -68,16 +117,68 @@ export const contratoService = {
         valorTotal: input.valorTotal,
         numParcelas: input.numParcelas,
         dataInicio: input.dataInicio,
+        taxaJurosMes: input.taxaJurosMes ?? null,
+        taxaMulta: input.taxaMulta ?? null,
         observacoes: input.observacoes ?? null,
       });
 
-      const parcelas = gerarParcelas(input, empresaId, novoContrato.id);
-      await parcelaRepository.criarEmLote(parcelas);
+      let parcelas =
+        input.parcelas && input.parcelas.length > 0
+          ? gerarParcelasCustomizadas(input, empresaId, novoContrato.id)
+          : gerarParcelasPadrao(
+              input,
+              empresaId,
+              novoContrato.id,
+              valorBase,
+              input.taxaJurosMes ?? 0
+            );
 
+      if (input.valorAntecipado && input.valorAntecipado > 0 && input.modoAmortizacao) {
+        const atualizacoes = calcularAmortizacao(
+          parcelas.map((p) => ({
+            id: String(p.numero),
+            numero: p.numero,
+            valorOriginal: p.valorOriginal,
+          })),
+          input.valorAntecipado,
+          input.modoAmortizacao,
+          input.parcelaAmortizacao
+        );
+
+        parcelas = parcelas.map((p) => {
+          const upd = atualizacoes.find((a) => a.id === String(p.numero));
+          if (!upd) return p;
+          return { ...p, valorOriginal: upd.valorOriginal, valorAtualizado: upd.valorAtualizado };
+        });
+      }
+
+      await parcelaRepository.criarEmLote(parcelas);
       return novoContrato;
     });
 
     return contratoRepository.buscarPorId(contrato.id, empresaId);
+  },
+
+  async amortizar(id: string, empresaId: string, input: AmortizarContratoDTO) {
+    const contrato = await contratoRepository.buscarPorId(id, empresaId);
+
+    if (!contrato) {
+      throw new AppError('Contrato não encontrado', 404);
+    }
+
+    if (contrato.status === StatusContrato.QUITADO) {
+      throw new AppError('Contrato quitado não pode ser amortizado', 400);
+    }
+
+    await aplicarAmortizacaoNoContrato(
+      id,
+      empresaId,
+      input.valor,
+      input.modo,
+      undefined,
+      input.parcelaAmortizacao
+    );
+    return contratoRepository.buscarPorId(id, empresaId);
   },
 
   async listar(empresaId: string, query: ListarContratosQuery) {
@@ -96,6 +197,8 @@ export const contratoService = {
       data: data.map((contrato) => ({
         ...contrato,
         valorTotal: Number(contrato.valorTotal),
+        taxaJurosMes: contrato.taxaJurosMes != null ? Number(contrato.taxaJurosMes) : null,
+        taxaMulta: contrato.taxaMulta != null ? Number(contrato.taxaMulta) : null,
       })),
       meta: buildPaginacaoMeta(total, page, limit),
     };
@@ -111,6 +214,8 @@ export const contratoService = {
     return {
       ...contrato,
       valorTotal: Number(contrato.valorTotal),
+      taxaJurosMes: contrato.taxaJurosMes != null ? Number(contrato.taxaJurosMes) : null,
+      taxaMulta: contrato.taxaMulta != null ? Number(contrato.taxaMulta) : null,
       parcelas: contrato.parcelas.map((parcela) => ({
         ...parcela,
         valorOriginal: Number(parcela.valorOriginal),
@@ -174,3 +279,21 @@ export const contratoService = {
     };
   },
 };
+
+export async function executarAmortizacaoAposPagamento(
+  contratoId: string,
+  empresaId: string,
+  parcelaIdPaga: string,
+  valor: number,
+  modo: ModoAmortizacao,
+  parcelaNumero?: number
+) {
+  await aplicarAmortizacaoNoContrato(
+    contratoId,
+    empresaId,
+    valor,
+    modo,
+    parcelaIdPaga,
+    parcelaNumero
+  );
+}

@@ -15,5 +15,10 @@ export const atualizarStatusParcelaSchema = z.object({
   status: z.nativeEnum(StatusParcela),
 });
 
+export const atualizarParcelaSchema = z.object({
+  dataVencimento: z.coerce.date({ invalid_type_error: 'dataVencimento inválida' }),
+});
+
 export type ListarParcelasQuery = z.infer<typeof listarParcelasQuerySchema>;
 export type AtualizarStatusParcelaDTO = z.infer<typeof atualizarStatusParcelaSchema>;
+export type AtualizarParcelaDTO = z.infer<typeof atualizarParcelaSchema>;

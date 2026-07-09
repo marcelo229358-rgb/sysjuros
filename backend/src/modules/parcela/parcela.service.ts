@@ -4,7 +4,7 @@ import { empresaRepository } from '../empresa/empresa.repository';
 import { AppError } from '../../shared/errors/AppError';
 import { buildPaginacaoMeta } from '../../shared/utils/pagination.util';
 import { startOfDay } from '../../shared/utils/date.util';
-import { ListarParcelasQuery, AtualizarStatusParcelaDTO } from './parcela.dto';
+import { ListarParcelasQuery, AtualizarStatusParcelaDTO, AtualizarParcelaDTO } from './parcela.dto';
 import {
   enriquecerParcela,
   obterTaxasEmpresa,
@@ -83,6 +83,33 @@ export const parcelaService = {
         ...atualizada,
         contrato: parcela.contrato,
       },
+      taxas,
+      new Date()
+    );
+  },
+
+  async atualizarVencimento(id: string, empresaId: string, input: AtualizarParcelaDTO) {
+    const parcela = await parcelaRepository.buscarPorId(id, empresaId);
+
+    if (!parcela) {
+      throw new AppError('Parcela não encontrada', 404);
+    }
+
+    if (parcela.status === StatusParcela.PAGA) {
+      throw new AppError('Parcela paga não pode ter o vencimento alterado', 400);
+    }
+
+    const atualizada = await parcelaRepository.atualizar(id, empresaId, {
+      dataVencimento: input.dataVencimento,
+    });
+
+    if (!atualizada) {
+      throw new AppError('Parcela não encontrada', 404);
+    }
+
+    const taxas = await obterTaxasEmpresa(empresaId);
+    return enriquecerParcela(
+      { ...atualizada, contrato: parcela.contrato },
       taxas,
       new Date()
     );

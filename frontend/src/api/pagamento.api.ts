@@ -7,6 +7,9 @@ export const pagamentoApi = {
     valorPago: number;
     formaPagamento: string;
     observacoes?: string;
+    valorAntecipado?: number;
+    modoAmortizacao?: 'TOTAL' | 'PARCELA_ESPECIFICA';
+    parcelaAmortizacao?: number;
   }) => {
     const response = await api.post<Pagamento>('/pagamentos', data);
     return response.data;

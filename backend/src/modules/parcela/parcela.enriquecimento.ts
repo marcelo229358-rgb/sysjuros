@@ -11,11 +11,28 @@ export function arredondarMoeda(valor: number): number {
 
 type ParcelaComContrato = NonNullable<Awaited<ReturnType<typeof parcelaRepository.buscarPorId>>>;
 
+type ContratoComTaxas = {
+  taxaJurosMes?: { toString(): string } | number | null;
+  taxaMulta?: { toString(): string } | number | null;
+};
+
+export function resolverTaxasParcela(
+  contrato: ContratoComTaxas | null | undefined,
+  taxasEmpresa: { taxaJurosMes: number; taxaMulta: number }
+) {
+  return {
+    taxaJurosMes:
+      contrato?.taxaJurosMes != null ? Number(contrato.taxaJurosMes) : taxasEmpresa.taxaJurosMes,
+    taxaMulta: contrato?.taxaMulta != null ? Number(contrato.taxaMulta) : taxasEmpresa.taxaMulta,
+  };
+}
+
 export function enriquecerParcela(
   parcela: ParcelaComContrato,
-  taxas: { taxaJurosMes: number; taxaMulta: number },
+  taxasEmpresa: { taxaJurosMes: number; taxaMulta: number },
   referencia: Date
 ) {
+  const taxas = resolverTaxasParcela(parcela.contrato, taxasEmpresa);
   const valorOriginal = Number(parcela.valorOriginal);
   const base = {
     ...parcela,

@@ -12,7 +12,11 @@ import {
   ProximoVencimento,
   InadimplenciaResposta,
   DevedorRanking,
+  PagadorSaude,
+  SaudePagadorStatus,
 } from './dashboard.dto';
+import { prisma } from '../../config/database';
+import { StatusParcela } from '@prisma/client';
 
 type ParcelasVencidas = Awaited<ReturnType<typeof buscarParcelasVencidasEnriquecidas>>;
 
@@ -155,5 +159,91 @@ export const dashboardService = {
       totalAReceber: totalAReceberArredondado,
       devedores: agruparDevedores(parcelasVencidas, limite),
     };
+  },
+
+  async saudePagadores(empresaId: string): Promise<PagadorSaude[]> {
+    const referencia = startOfDay(new Date());
+    const parcelasVencidas = await buscarParcelasVencidasEnriquecidas(empresaId);
+
+    const vencidasPorCliente = new Map<string, { qtd: number; valor: number }>();
+    for (const p of parcelasVencidas) {
+      const clienteId = p.contrato.cliente.id;
+      const atual = vencidasPorCliente.get(clienteId) ?? { qtd: 0, valor: 0 };
+      atual.qtd += 1;
+      atual.valor += p.valorAtualizado;
+      vencidasPorCliente.set(clienteId, atual);
+    }
+
+    const clientes = await prisma.cliente.findMany({
+      where: { empresaId, ativo: true },
+      select: { id: true, nome: true },
+      orderBy: { nome: 'asc' },
+    });
+
+    const parcelasPagas = await prisma.parcela.findMany({
+      where: {
+        empresaId,
+        status: StatusParcela.PAGA,
+        dataPagamento: { not: null },
+      },
+      select: {
+        dataVencimento: true,
+        dataPagamento: true,
+        contrato: { select: { clienteId: true } },
+      },
+    });
+
+    const pagasPorCliente = new Map<string, { emDia: number; atraso: number; totalPago: number }>();
+
+    const pagamentosPorCliente = await prisma.pagamento.findMany({
+      where: { empresaId },
+      select: {
+        valorPago: true,
+        parcela: { select: { contrato: { select: { clienteId: true } } } },
+      },
+    });
+
+    for (const pg of pagamentosPorCliente) {
+      const clienteId = pg.parcela.contrato.clienteId;
+      const atual = pagasPorCliente.get(clienteId) ?? { emDia: 0, atraso: 0, totalPago: 0 };
+      atual.totalPago += Number(pg.valorPago);
+      pagasPorCliente.set(clienteId, atual);
+    }
+
+    for (const p of parcelasPagas) {
+      const clienteId = p.contrato.clienteId;
+      const atual = pagasPorCliente.get(clienteId) ?? { emDia: 0, atraso: 0, totalPago: 0 };
+      if (p.dataPagamento! > p.dataVencimento) {
+        atual.atraso += 1;
+      } else {
+        atual.emDia += 1;
+      }
+      pagasPorCliente.set(clienteId, atual);
+    }
+
+    return clientes
+      .map((cliente) => {
+        const vencidas = vencidasPorCliente.get(cliente.id) ?? { qtd: 0, valor: 0 };
+        const pagas = pagasPorCliente.get(cliente.id) ?? { emDia: 0, atraso: 0, totalPago: 0 };
+
+        let saude: SaudePagadorStatus = 'SAUDAVEL';
+        if (vencidas.qtd > 0) {
+          saude = 'CRITICO';
+        } else if (pagas.atraso > 0) {
+          saude = 'ATENCAO';
+        }
+
+        return {
+          clienteId: cliente.id,
+          clienteNome: cliente.nome,
+          saude,
+          qtdVencidas: vencidas.qtd,
+          qtdPagasEmDia: pagas.emDia,
+          qtdPagasAtraso: pagas.atraso,
+          valorEmAtraso: arredondarMoeda(vencidas.valor),
+          totalPago: arredondarMoeda(pagas.totalPago),
+        };
+      })
+      .filter((c) => c.qtdVencidas > 0 || c.qtdPagasEmDia > 0 || c.qtdPagasAtraso > 0 || c.totalPago > 0);
   },
 };

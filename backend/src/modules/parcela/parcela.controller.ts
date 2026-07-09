@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { parcelaService } from './parcela.service';
-import { listarParcelasQuerySchema, atualizarStatusParcelaSchema } from './parcela.dto';
+import { listarParcelasQuerySchema, atualizarStatusParcelaSchema, atualizarParcelaSchema } from './parcela.dto';
 import { parseBody, parseQuery } from '../../shared/utils/zod.util';
 import { getRouteParam } from '../../shared/utils/request.util';
 
@@ -29,6 +29,16 @@ export const parcelaController = {
   async atualizarStatus(req: Request, res: Response) {
     const input = parseBody(atualizarStatusParcelaSchema, req.body);
     const parcela = await parcelaService.atualizarStatus(
+      getRouteParam(req, 'id'),
+      req.empresaId!,
+      input
+    );
+    return res.json(parcela);
+  },
+
+  async atualizarVencimento(req: Request, res: Response) {
+    const input = parseBody(atualizarParcelaSchema, req.body);
+    const parcela = await parcelaService.atualizarVencimento(
       getRouteParam(req, 'id'),
       req.empresaId!,
       input

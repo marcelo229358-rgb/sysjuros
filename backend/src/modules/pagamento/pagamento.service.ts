@@ -4,6 +4,7 @@ import { pagamentoRepository } from './pagamento.repository';
 import { parcelaRepository } from '../parcela/parcela.repository';
 import { contratoRepository } from '../contrato/contrato.repository';
 import { parcelaService } from '../parcela/parcela.service';
+import { executarAmortizacaoAposPagamento } from '../contrato/contrato.service';
 import { AppError } from '../../shared/errors/AppError';
 import { buildPaginacaoMeta } from '../../shared/utils/pagination.util';
 import { RegistrarPagamentoDTO, ListarPagamentosQuery } from './pagamento.dto';
@@ -70,6 +71,17 @@ export const pagamentoService = {
           parcela.contratoId,
           empresaId,
           StatusContrato.QUITADO
+        );
+      }
+
+      if (input.valorAntecipado && input.valorAntecipado > 0 && input.modoAmortizacao) {
+        await executarAmortizacaoAposPagamento(
+          parcela.contratoId,
+          empresaId,
+          parcela.id,
+          input.valorAntecipado,
+          input.modoAmortizacao,
+          input.parcelaAmortizacao
         );
       }
 

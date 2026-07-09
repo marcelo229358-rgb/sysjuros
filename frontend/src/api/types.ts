@@ -55,6 +55,8 @@ export interface Contrato {
   valorTotal: number;
   numParcelas: number;
   dataInicio: string;
+  taxaJurosMes?: number | null;
+  taxaMulta?: number | null;
   status: StatusContrato;
   observacoes?: string | null;
   cliente?: { id: string; nome: string; cpfCnpj: string | null };
@@ -133,4 +135,17 @@ export interface InadimplenciaResposta {
   totalVencido: number;
   totalAReceber: number;
   devedores: DevedorRanking[];
+}
+
+export type SaudePagadorStatus = 'SAUDAVEL' | 'ATENCAO' | 'CRITICO';
+
+export interface PagadorSaude {
+  clienteId: string;
+  clienteNome: string;
+  saude: SaudePagadorStatus;
+  qtdVencidas: number;
+  qtdPagasEmDia: number;
+  qtdPagasAtraso: number;
+  valorEmAtraso: number;
+  totalPago: number;
 }

@@ -27,3 +27,7 @@ dashboardRoutes.get('/proximos-vencimentos', (req, res, next) =>
 dashboardRoutes.get('/inadimplencia', (req, res, next) =>
   dashboardController.inadimplencia(req, res).catch(next)
 );
+
+dashboardRoutes.get('/saude-pagadores', (req, res, next) =>
+  dashboardController.saudePagadores(req, res).catch(next)
+);

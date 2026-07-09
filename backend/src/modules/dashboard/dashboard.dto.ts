@@ -57,3 +57,16 @@ export interface InadimplenciaResposta {
   totalAReceber: number;
   devedores: DevedorRanking[];
 }
+
+export type SaudePagadorStatus = 'SAUDAVEL' | 'ATENCAO' | 'CRITICO';
+
+export interface PagadorSaude {
+  clienteId: string;
+  clienteNome: string;
+  saude: SaudePagadorStatus;
+  qtdVencidas: number;
+  qtdPagasEmDia: number;
+  qtdPagasAtraso: number;
+  valorEmAtraso: number;
+  totalPago: number;
+}

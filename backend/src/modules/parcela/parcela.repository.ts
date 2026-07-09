@@ -183,11 +183,13 @@ export const parcelaRepository = {
     id: string,
     empresaId: string,
     data: {
+      valorOriginal?: number;
       valorMulta?: number;
       valorJuros?: number;
       valorAtualizado?: number;
       status?: StatusParcela;
       dataPagamento?: Date | null;
+      dataVencimento?: Date;
     }
   ) {
     const parcela = await this.buscarPorId(id, empresaId);
@@ -196,6 +198,9 @@ export const parcelaRepository = {
     return prisma.parcela.update({
       where: { id },
       data: {
+        ...(data.valorOriginal !== undefined
+          ? { valorOriginal: new Decimal(data.valorOriginal) }
+          : {}),
         ...(data.valorMulta !== undefined ? { valorMulta: new Decimal(data.valorMulta) } : {}),
         ...(data.valorJuros !== undefined ? { valorJuros: new Decimal(data.valorJuros) } : {}),
         ...(data.valorAtualizado !== undefined
@@ -203,7 +208,15 @@ export const parcelaRepository = {
           : {}),
         ...(data.status !== undefined ? { status: data.status } : {}),
         ...(data.dataPagamento !== undefined ? { dataPagamento: data.dataPagamento } : {}),
+        ...(data.dataVencimento !== undefined ? { dataVencimento: data.dataVencimento } : {}),
       },
+    });
+  },
+
+  async listarPendentesPorContrato(contratoId: string, empresaId: string) {
+    return prisma.parcela.findMany({
+      where: { contratoId, empresaId, status: StatusParcela.PENDENTE },
+      orderBy: { numero: 'asc' },
     });
   },
 

@@ -6,6 +6,7 @@ const links = [
   { to: '/clientes', label: 'Clientes', icon: '👥' },
   { to: '/contratos', label: 'Contratos', icon: '📄' },
   { to: '/parcelas', label: 'Parcelas', icon: '💰' },
+  { to: '/saudavel', label: 'Saudável', icon: '🩺' },
   { to: '/agenda', label: 'Agenda', icon: '📅' },
   { to: '/relatorios', label: 'Relatórios', icon: '📈', permissao: 'relatorios' as const },
   {

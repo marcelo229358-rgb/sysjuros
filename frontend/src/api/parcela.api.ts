@@ -27,4 +27,9 @@ export const parcelaApi = {
     const response = await api.get<Parcela>(`/parcelas/${id}`);
     return response.data;
   },
+
+  atualizarVencimento: async (id: string, dataVencimento: string) => {
+    const response = await api.patch<Parcela>(`/parcelas/${id}`, { dataVencimento });
+    return response.data;
+  },
 };

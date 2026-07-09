@@ -167,6 +167,8 @@ model Contrato {
   valorTotal     Decimal
   numParcelas    Int
   dataInicio     DateTime
+  taxaJurosMes   Decimal?
+  taxaMulta      Decimal?
   status         StatusContrato  @default(ATIVO)
   observacoes    String?
   criadoEm       DateTime        @default(now())

@@ -62,3 +62,14 @@ contratoRoutes.patch(
   }),
   (req, res, next) => contratoController.atualizarStatus(req, res).catch(next)
 );
+
+contratoRoutes.post(
+  '/:id/amortizar',
+  auditLogMiddleware({
+    acao: 'AMORTIZOU_CONTRATO',
+    entidade: 'Contrato',
+    getEntidadeId: (req) => getRouteParam(req, 'id'),
+    getDetalhes: (req) => req.body as Prisma.InputJsonValue,
+  }),
+  (req, res, next) => contratoController.amortizar(req, res).catch(next)
+);

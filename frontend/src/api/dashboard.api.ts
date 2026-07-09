@@ -2,6 +2,7 @@ import api from './axios';
 import {
   ContratoPorStatus,
   InadimplenciaResposta,
+  PagadorSaude,
   ProximoVencimento,
   RecebimentoMensal,
   ResumoFinanceiro,
@@ -34,6 +35,11 @@ export const dashboardApi = {
     const response = await api.get<InadimplenciaResposta>('/dashboard/inadimplencia', {
       params: { limite },
     });
+    return response.data;
+  },
+
+  buscarSaudePagadores: async () => {
+    const response = await api.get<PagadorSaude[]>('/dashboard/saude-pagadores');
     return response.data;
   },
 };

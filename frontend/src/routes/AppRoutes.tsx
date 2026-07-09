@@ -8,6 +8,7 @@ import { Clientes } from '../pages/Clientes';
 import { Contratos } from '../pages/Contratos';
 import { ContratoDetalhe } from '../pages/ContratoDetalhe';
 import { Parcelas } from '../pages/Parcelas';
+import { Saudavel } from '../pages/Saudavel';
 import { Agenda } from '../pages/Agenda';
 import { Relatorios } from '../pages/Relatorios';
 import { Configuracoes } from '../pages/Configuracoes';
@@ -51,6 +52,7 @@ export function AppRoutes() {
         <Route path="/contratos" element={<Contratos />} />
         <Route path="/contratos/:id" element={<ContratoDetalhe />} />
         <Route path="/parcelas" element={<Parcelas />} />
+        <Route path="/saudavel" element={<Saudavel />} />
         <Route path="/agenda" element={<Agenda />} />
         <Route
           path="/relatorios"

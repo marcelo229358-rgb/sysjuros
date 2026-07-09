@@ -26,6 +26,17 @@ parcelaRoutes.get('/:id', (req, res, next) =>
 );
 
 parcelaRoutes.patch(
+  '/:id',
+  auditLogMiddleware({
+    acao: 'ATUALIZOU_PARCELA',
+    entidade: 'Parcela',
+    getEntidadeId: (req) => getRouteParam(req, 'id'),
+    getDetalhes: (req) => req.body as Prisma.InputJsonValue,
+  }),
+  (req, res, next) => parcelaController.atualizarVencimento(req, res).catch(next)
+);
+
+parcelaRoutes.patch(
   '/:id/status',
   auditLogMiddleware({
     acao: 'ATUALIZOU_STATUS_PARCELA',
