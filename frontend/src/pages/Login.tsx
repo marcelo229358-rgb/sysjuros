@@ -12,14 +12,17 @@ export function Login() {
   const isDev = import.meta.env.DEV;
   const [email, setEmail] = useState(isDev ? 'admin@empresademo.com.br' : '');
   const [senha, setSenha] = useState(isDev ? 'admin123' : '');
-  const [empresaId, setEmpresaId] = useState(
-    searchParams.get('empresaId') ?? import.meta.env.VITE_EMPRESA_ID ?? ''
-  );
+  const [empresaId, setEmpresaId] = useState(searchParams.get('empresaId') ?? '');
+  const [mostrarEmpresaId, setMostrarEmpresaId] = useState(!!searchParams.get('empresaId'));
 
   useEffect(() => {
     const id = searchParams.get('empresaId');
-    if (id) setEmpresaId(id);
+    if (id) {
+      setEmpresaId(id);
+      setMostrarEmpresaId(true);
+    }
   }, [searchParams]);
+
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(false);
 
@@ -28,10 +31,14 @@ export function Login() {
     setErro('');
     setCarregando(true);
     try {
-      const usuarioLogado = await login(email, senha, empresaId);
+      const usuarioLogado = await login(email, senha, empresaId || undefined);
       navigate(usuarioLogado.deveAlterarSenha ? '/alterar-senha' : '/dashboard');
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const response = err as { response?: { data?: { message?: string }; status?: number } };
+      const msg = response?.response?.data?.message;
+      if (response?.response?.status === 400 && msg?.includes('ID da empresa')) {
+        setMostrarEmpresaId(true);
+      }
       setErro(msg ?? 'Credenciais inválidas');
     } finally {
       setCarregando(false);
@@ -66,16 +73,19 @@ export function Login() {
                 required
               />
             </Form.Group>
-            <Form.Group className="mb-4">
-              <Form.Label>ID da Empresa</Form.Label>
-              <Form.Control
-                data-testid="input-empresa-id"
-                value={empresaId}
-                onChange={(e) => setEmpresaId(e.target.value)}
-                required
-              />
-              <Form.Text className="text-muted">UUID da empresa (multi-tenant)</Form.Text>
-            </Form.Group>
+            {mostrarEmpresaId && (
+              <Form.Group className="mb-4">
+                <Form.Label>ID da Empresa</Form.Label>
+                <Form.Control
+                  data-testid="input-empresa-id"
+                  value={empresaId}
+                  onChange={(e) => setEmpresaId(e.target.value)}
+                />
+                <Form.Text className="text-muted">
+                  Necessário apenas se o e-mail estiver em mais de uma empresa
+                </Form.Text>
+              </Form.Group>
+            )}
             <Button type="submit" className="w-100" disabled={carregando} data-testid="btn-login">
               {carregando ? 'Entrando...' : 'Entrar'}
             </Button>

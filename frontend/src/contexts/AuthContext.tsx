@@ -6,7 +6,7 @@ interface AuthContextData {
   usuario: Usuario | null;
   empresa: Empresa | null;
   carregando: boolean;
-  login: (email: string, senha: string, empresaId: string) => Promise<Usuario>;
+  login: (email: string, senha: string, empresaId?: string) => Promise<Usuario>;
   alterarSenha: (senhaAtual: string, senhaNova: string, confirmarSenha: string) => Promise<void>;
   logout: () => void;
 }
@@ -40,8 +40,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  async function login(email: string, senha: string, empresaId: string) {
-    const response = await authApi.login({ email, senha, empresaId });
+  async function login(email: string, senha: string, empresaId?: string) {
+    const response = await authApi.login({
+      email,
+      senha,
+      ...(empresaId?.trim() ? { empresaId: empresaId.trim() } : {}),
+    });
     localStorage.setItem('token', response.token);
     localStorage.setItem('usuario', JSON.stringify(response.usuario));
     localStorage.setItem('empresa', JSON.stringify(response.empresa));

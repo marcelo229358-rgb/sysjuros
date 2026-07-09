@@ -22,6 +22,18 @@ export const usuarioRepository = {
     });
   },
 
+  async findActiveByEmail(email: string) {
+    return prisma.usuario.findMany({
+      where: {
+        email: email.trim().toLowerCase(),
+        ativo: true,
+        isMaster: false,
+        empresa: { ativo: true },
+      },
+      include: { empresa: true },
+    });
+  },
+
   async findByIdAndEmpresa(id: string, empresaId: string) {
     return prisma.usuario.findFirst({
       where: { id, empresaId, ativo: true, isMaster: false },

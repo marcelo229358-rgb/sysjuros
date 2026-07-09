@@ -6,7 +6,23 @@ import { AlterarSenhaInput, LoginInput } from './auth.dto';
 
 export const authService = {
   async login(input: LoginInput) {
-    const usuario = await usuarioRepository.findByEmailAndEmpresa(input.email, input.empresaId);
+    let usuario;
+
+    if (input.empresaId) {
+      usuario = await usuarioRepository.findByEmailAndEmpresa(input.email, input.empresaId);
+    } else {
+      const candidatos = await usuarioRepository.findActiveByEmail(input.email);
+
+      if (candidatos.length === 0) {
+        throw new AppError('Credenciais inválidas', 401);
+      }
+
+      if (candidatos.length > 1) {
+        throw new AppError('Informe o ID da empresa para continuar', 400);
+      }
+
+      usuario = candidatos[0];
+    }
 
     if (!usuario || !usuario.ativo || usuario.isMaster) {
       throw new AppError('Credenciais inválidas', 401);
