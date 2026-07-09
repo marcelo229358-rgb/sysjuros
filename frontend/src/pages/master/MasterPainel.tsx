@@ -10,6 +10,7 @@ import { MasterAssinaturasSection } from './sections/MasterAssinaturasSection';
 import { MasterFinanceiroSection } from './sections/MasterFinanceiroSection';
 import { MasterPermissoesSection } from './sections/MasterPermissoesSection';
 import { MasterMonitoramentoSection } from './sections/MasterMonitoramentoSection';
+import { MasterBillingSection } from './sections/MasterBillingSection';
 import '../../styles/master.scss';
 
 const TITULOS: Record<MasterSecao, string> = {
@@ -19,6 +20,7 @@ const TITULOS: Record<MasterSecao, string> = {
   financeiro: 'Financeiro',
   permissoes: 'Permissões',
   monitoramento: 'Monitoramento',
+  billing: 'Billing — AppDeploy',
 };
 
 export function MasterPainel() {
@@ -70,6 +72,7 @@ export function MasterPainel() {
           {secao === 'financeiro' && <MasterFinanceiroSection onAlert={onAlert} />}
           {secao === 'permissoes' && <MasterPermissoesSection onAlert={onAlert} />}
           {secao === 'monitoramento' && <MasterMonitoramentoSection onAlert={onAlert} />}
+          {secao === 'billing' && <MasterBillingSection onAlert={onAlert} />}
         </main>
       </div>
     </div>

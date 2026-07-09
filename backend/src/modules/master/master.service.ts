@@ -14,6 +14,8 @@ import {
 import { prisma } from '../../config/database';
 import { env } from '../../config/env';
 import { PlanoEmpresa, TipoLancamentoMaster } from '@prisma/client';
+import { isBillingEnabled } from '../billing/billing.config';
+import { billingService } from '../billing/application/services/billing.service';
 
 const DEMO_EMPRESA_ID = '1030c59f-503a-4dfc-ad8b-66c802060cd0';
 
@@ -154,6 +156,10 @@ export const masterService = {
       ...(input.plano !== undefined ? { plano: input.plano } : {}),
     });
 
+    if (isBillingEnabled() && input.plano) {
+      await billingService.syncLegacyPlano(id, input.plano);
+    }
+
     return {
       id: empresa.id,
       nome: empresa.nome,
@@ -234,6 +240,35 @@ export const masterService = {
   },
 
   async listarAssinaturas() {
+    if (isBillingEnabled()) {
+      const subs = await billingService.listSubscriptions();
+      const assinaturas = subs.map((s) => ({
+        id: s.tenantId,
+        nome: s.product.name,
+        plano: s.plan.slug.toUpperCase(),
+        ativo: s.status === 'ACTIVE' || s.status === 'TRIAL',
+        criadoEm: s.createdAt,
+        valor_mensal: Number(s.plan.price),
+        billingSubscriptionId: s.id,
+        billingStatus: s.status,
+        expiresAt: s.expiresAt,
+      }));
+      const ativas = assinaturas.filter((a) => a.ativo);
+      const mrr = ativas.reduce((sum, a) => sum + a.valor_mensal, 0);
+      return {
+        assinaturas,
+        mrr,
+        arr: mrr * 12,
+        stats: {
+          total: assinaturas.length,
+          ativas: ativas.length,
+          inativas: assinaturas.length - ativas.length,
+        },
+        planos: PLANOS_PRECO,
+        source: 'billing' as const,
+      };
+    }
+
     const empresas = await masterRepository.listarEmpresas();
     const assinaturas = empresas.map((empresa) => ({
       id: empresa.id,
@@ -274,6 +309,10 @@ export const masterService = {
       ...(input.plano !== undefined ? { plano: input.plano } : {}),
       ...(input.ativo !== undefined ? { ativo: input.ativo } : {}),
     });
+
+    if (isBillingEnabled() && input.plano) {
+      await billingService.syncLegacyPlano(id, input.plano);
+    }
 
     await logMasterAudit(masterUsuarioId, 'update', 'assinaturas', { empresaId: id, ...input }, ip);
 

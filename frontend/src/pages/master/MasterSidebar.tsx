@@ -7,6 +7,7 @@ const ITENS: { id: MasterSecao; label: string; icon: string }[] = [
   { id: 'financeiro', label: 'Financeiro', icon: '📈' },
   { id: 'permissoes', label: 'Permissões', icon: '🛡️' },
   { id: 'monitoramento', label: 'Monitoramento', icon: '💓' },
+  { id: 'billing', label: 'Billing', icon: '💳' },
 ];
 
 interface Props {

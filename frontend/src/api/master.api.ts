@@ -56,7 +56,8 @@ export type MasterSecao =
   | 'assinaturas'
   | 'financeiro'
   | 'permissoes'
-  | 'monitoramento';
+  | 'monitoramento'
+  | 'billing';
 
 export const masterApiClient = {
   signin: async (email: string, senha: string) => {

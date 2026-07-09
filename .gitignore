@@ -11,6 +11,8 @@ dist-ssr/
 !.env.example
 !.env.production.example
 !.env.prod.example
+backend/scripts/vps.env.local
+backend/scripts/vps.env
 
 # Logs
 *.log
@@ -26,6 +28,14 @@ npm-debug.log*
 test-results/
 playwright-report/
 blob-report/
+
+# Backups locais
+backups/
+backend/backups/
+
+# VPS secrets
+backend/scripts/vps.env.local
+backend/scripts/vps.env
 
 # Prisma
 backend/prisma/*.db

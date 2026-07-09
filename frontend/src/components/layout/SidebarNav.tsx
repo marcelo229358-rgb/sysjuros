@@ -9,6 +9,12 @@ const links = [
   { to: '/agenda', label: 'Agenda', icon: '📅' },
   { to: '/relatorios', label: 'Relatórios', icon: '📈', permissao: 'relatorios' as const },
   {
+    to: '/minha-assinatura',
+    label: 'Minha Assinatura',
+    icon: '💳',
+    permissao: 'taxas' as const,
+  },
+  {
     to: '/configuracoes',
     label: 'Configurações',
     icon: '⚙️',

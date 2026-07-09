@@ -1,5 +1,6 @@
 import { PrismaClient, PerfilUsuario } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { seedBilling } from './billing-seed';
 
 const prisma = new PrismaClient();
 
@@ -45,6 +46,8 @@ async function main() {
   console.log(`  Empresa: ${empresa.nome} (${empresa.id})`);
   console.log(`  Usuário: ${usuario.email} / senha: admin123`);
   console.log(`  empresaId para login: ${empresa.id}`);
+
+  await seedBilling(prisma);
 }
 
 main()

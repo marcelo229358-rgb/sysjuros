@@ -8,6 +8,11 @@ declare global {
       perfil?: PerfilUsuario;
       masterUsuarioId?: string;
       masterEmail?: string;
+      billingLicense?: {
+        features: string[];
+        limits: Record<string, number>;
+        planSlug?: string;
+      };
     }
   }
 }

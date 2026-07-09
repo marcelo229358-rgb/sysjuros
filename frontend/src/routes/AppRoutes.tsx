@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { RotaProtegida } from './RotaProtegida';
+import { MasterRotaProtegida } from './MasterRotaProtegida';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { Login } from '../pages/Login';
 import { Dashboard } from '../pages/Dashboard';
@@ -12,9 +13,9 @@ import { Relatorios } from '../pages/Relatorios';
 import { Configuracoes } from '../pages/Configuracoes';
 import { Usuarios } from '../pages/Usuarios';
 import { AlterarSenha } from '../pages/AlterarSenha';
+import { MinhaAssinatura } from '../pages/MinhaAssinatura';
 import { MasterLogin } from '../pages/master/MasterLogin';
 import { MasterPainel } from '../pages/master/MasterPainel';
-import { MasterRotaProtegida } from './MasterRotaProtegida';
 
 export function AppRoutes() {
   return (
@@ -72,6 +73,14 @@ export function AppRoutes() {
           element={
             <RotaProtegida perfisPermitidos={['ADMIN']}>
               <Usuarios />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/minha-assinatura"
+          element={
+            <RotaProtegida perfisPermitidos={['ADMIN']}>
+              <MinhaAssinatura />
             </RotaProtegida>
           }
         />
