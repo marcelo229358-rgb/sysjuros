@@ -6,9 +6,9 @@
 #   cp .env.prod.example .env.prod   # preencher na VPS
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 #
-# NPM (Proxy Hosts):
-#   Frontend → http://syscontabel-frontend:80
-#   API      → http://syscontabel-backend:3333
+# NPM (Proxy Hosts) — aliases mantêm compatibilidade com nomes antigos:
+#   Frontend → http://sysjuros-frontend:80  (ou syscontabel-frontend)
+#   API      → http://sysjuros-backend:3333 (ou syscontabel-backend)
 # =============================================================================
 
 services:
@@ -85,12 +85,10 @@ services:
     container_name: syscontabel-frontend
     restart: always
     networks:
-      - proxy-network
+      proxy-network:
+        aliases:
+          - sysjuros-frontend
     depends_on:
-      backend:
-        condition: service_healthy
-    expose:
-      - '80'
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://localhost/']
       interval: 30s
@@ -104,4 +102,4 @@ networks:
 
 volumes:
   postgres_data:
-    name: syscontabel_postgres_data
+    name: sysjuros_postgres_data
