@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { PlanoEmpresa } from './types';
 
 const masterApi = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -40,12 +41,22 @@ export interface MasterEmpresa {
   telefone: string | null;
   taxaJurosMes: number;
   taxaMulta: number;
+  plano: PlanoEmpresa;
   ativo: boolean;
   criadoEm: string;
   admin: { email: string; nome: string } | null;
   totais: { usuarios: number; clientes: number; contratos: number };
   loginUrl: string;
+  valor_mensal?: number;
 }
+
+export type MasterSecao =
+  | 'empresas'
+  | 'clientes'
+  | 'assinaturas'
+  | 'financeiro'
+  | 'permissoes'
+  | 'monitoramento';
 
 export const masterApiClient = {
   signin: async (email: string, senha: string) => {
@@ -66,55 +77,104 @@ export const masterApiClient = {
     return data.data;
   },
 
-  criarEmpresa: async (payload: {
-    nome: string;
-    cnpj?: string;
-    email?: string;
-    telefone?: string;
-    taxaJurosMes?: number;
-    taxaMulta?: number;
-    adminNome?: string;
-    adminEmail?: string;
-    adminSenha?: string;
-  }) => {
+  criarEmpresa: async (payload: Record<string, unknown>) => {
     const { data } = await masterApi.post('/master/empresas', payload);
+    return data;
+  },
+
+  atualizarEmpresa: async (id: string, payload: Record<string, unknown>) => {
+    const { data } = await masterApi.patch(`/master/empresas/${id}`, payload);
+    return data;
+  },
+
+  excluirEmpresa: async (id: string) => {
+    const { data } = await masterApi.delete(`/master/empresas/${id}`);
+    return data;
+  },
+
+  clientesStats: async () => {
+    const { data } = await masterApi.get('/master/clientes/stats');
     return data as {
-      empresa: { id: string; nome: string; email: string; ativo: boolean };
-      adminEmail: string | null;
-      empresaId: string;
-      loginUrl: string;
+      empresas_total: number;
+      empresas_ativas: number;
+      usuarios_operacionais: number;
+      admins_empresa: number;
     };
   },
 
-  atualizarEmpresa: async (
-    id: string,
-    payload: Partial<{
-      nome: string;
-      email: string;
-      telefone: string | null;
-      taxaJurosMes: number;
-      taxaMulta: number;
-      ativo: boolean;
-    }>
-  ) => {
-    const { data } = await masterApi.patch(`/master/empresas/${id}`, payload);
+  listarClientes: async (params?: { search?: string; status?: string; tipo?: 'empresa' | 'usuario' }) => {
+    const { data } = await masterApi.get('/master/clientes', { params });
+    return data;
+  },
+
+  atualizarCliente: async (id: string, payload: Record<string, unknown>) => {
+    const { data } = await masterApi.patch(`/master/clientes/${id}`, payload);
+    return data;
+  },
+
+  listarAssinaturas: async () => {
+    const { data } = await masterApi.get('/master/assinaturas');
+    return data;
+  },
+
+  atualizarAssinatura: async (id: string, payload: Record<string, unknown>) => {
+    const { data } = await masterApi.patch(`/master/assinaturas/${id}`, payload);
+    return data;
+  },
+
+  financeiroResumo: async () => {
+    const { data } = await masterApi.get('/master/financeiro/resumo');
+    return data;
+  },
+
+  listarLancamentos: async (tipo: 'PAGAR' | 'RECEBER') => {
+    const { data } = await masterApi.get('/master/lancamentos', { params: { tipo } });
+    return data.data;
+  },
+
+  criarLancamento: async (payload: Record<string, unknown>) => {
+    const { data } = await masterApi.post('/master/lancamentos', payload);
+    return data;
+  },
+
+  atualizarLancamento: async (id: string, payload: Record<string, unknown>) => {
+    const { data } = await masterApi.patch(`/master/lancamentos/${id}`, payload);
+    return data;
+  },
+
+  excluirLancamento: async (id: string) => {
+    const { data } = await masterApi.delete(`/master/lancamentos/${id}`);
+    return data;
+  },
+
+  listarPagamentos: async () => {
+    const { data } = await masterApi.get('/master/financeiro/pagamentos');
+    return data.data;
+  },
+
+  permissoesMeta: async () => {
+    const { data } = await masterApi.get('/master/permissions/modules');
+    return data as { profiles: string[]; modules: string[]; actions: string[] };
+  },
+
+  listarPermissoes: async (perfil: string) => {
+    const { data } = await masterApi.get(`/master/permissions/${perfil}`);
+    return data.data as Array<{ perfil: string; modulo: string; acoes: string[] }>;
+  },
+
+  atualizarPermissao: async (payload: { perfil: string; modulo: string; acoes: string[] }) => {
+    const { data } = await masterApi.put('/master/permissions', payload);
     return data;
   },
 
   monitoramento: async () => {
     const { data } = await masterApi.get('/master/monitoramento');
-    return data as {
-      api: string;
-      timestamp: string;
-      stats: {
-        empresas: number;
-        empresasAtivas: number;
-        usuarios: number;
-        clientes: number;
-        contratos: number;
-      };
-      memoria: { rssMb: number; heapUsedMb: number };
-    };
+    return data;
+  },
+
+  listarLogs: async (params?: { limit?: number; modulo?: string }) => {
+    const { data } = await masterApi.get('/master/monitoramento/logs', { params });
+    return data.data;
   },
 };
 

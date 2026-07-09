@@ -1,4 +1,5 @@
 export type PerfilUsuario = 'ADMIN' | 'FINANCEIRO' | 'OPERADOR';
+export type PlanoEmpresa = 'BASICO' | 'PRO' | 'PREMIUM';
 export type StatusContrato = 'ATIVO' | 'INADIMPLENTE' | 'CANCELADO' | 'QUITADO';
 export type StatusParcela = 'PENDENTE' | 'PAGA' | 'VENCIDA' | 'CANCELADA';
 

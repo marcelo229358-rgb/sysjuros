@@ -13,6 +13,23 @@ enum PerfilUsuario {
   OPERADOR
 }
 
+enum PlanoEmpresa {
+  BASICO
+  PRO
+  PREMIUM
+}
+
+enum TipoLancamentoMaster {
+  PAGAR
+  RECEBER
+}
+
+enum StatusLancamentoMaster {
+  PENDENTE
+  PAGO
+  CANCELADO
+}
+
 enum StatusContrato {
   ATIVO
   INADIMPLENTE
@@ -35,6 +52,7 @@ model Empresa {
   telefone      String?
   taxaJurosMes  Decimal  @default(30.0)
   taxaMulta     Decimal  @default(2.0)
+  plano         PlanoEmpresa @default(BASICO)
   modoEscuro    Boolean  @default(false)
   ativo         Boolean  @default(true)
   criadoEm      DateTime @default(now())
@@ -45,6 +63,7 @@ model Empresa {
   contratos     Contrato[]
   logs          LogAuditoria[]
   notificacoes  Notificacao[]
+  lancamentosMaster MasterLancamento[]
 
   @@map("empresas")
 }
@@ -176,4 +195,45 @@ model Notificacao {
   @@index([empresaId, lida])
   @@index([empresaId, tipo, parcelaId])
   @@map("notificacoes")
+}
+
+model MasterLancamento {
+  id          String                 @id @default(uuid())
+  tipo        TipoLancamentoMaster
+  descricao   String
+  valor       Decimal
+  vencimento  DateTime
+  status      StatusLancamentoMaster @default(PENDENTE)
+  empresaId   String?
+  empresa     Empresa?               @relation(fields: [empresaId], references: [id], onDelete: SetNull)
+  criadoEm    DateTime               @default(now())
+  atualizadoEm DateTime              @updatedAt
+
+  @@index([tipo, status])
+  @@map("master_lancamentos")
+}
+
+model MasterPermissao {
+  id           String   @id @default(uuid())
+  perfil       String
+  modulo       String
+  acoes        Json
+  atualizadoEm DateTime @updatedAt
+
+  @@unique([perfil, modulo])
+  @@map("master_permissions")
+}
+
+model MasterAuditLog {
+  id         String   @id @default(uuid())
+  usuarioId  String?
+  acao       String
+  modulo     String
+  detalhes   Json?
+  ip         String?
+  criadoEm   DateTime @default(now())
+
+  @@index([criadoEm])
+  @@index([modulo])
+  @@map("master_audit_logs")
 }

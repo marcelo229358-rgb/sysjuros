@@ -3,6 +3,9 @@ import { AppError } from '../../shared/errors/AppError';
 import { comparePassword, hashPassword } from '../../shared/utils/hash.util';
 import { signMasterToken } from '../../shared/utils/masterJwt.util';
 import { getMasterEmail, isMasterConfigured } from '../../shared/utils/masterConfig';
+import { PLANOS_PRECO } from './master.constants';
+import { logMasterAudit } from './masterAudit.util';
+import { bootstrapMasterPermissions, getPermissionsMeta } from './masterPermissions.seed';
 import {
   MasterLoginInput,
   CriarEmpresaMasterInput,
@@ -10,6 +13,7 @@ import {
 } from './master.dto';
 import { prisma } from '../../config/database';
 import { env } from '../../config/env';
+import { PlanoEmpresa, TipoLancamentoMaster } from '@prisma/client';
 
 const DEMO_EMPRESA_ID = '1030c59f-503a-4dfc-ad8b-66c802060cd0';
 
@@ -66,20 +70,7 @@ export const masterService = {
   async listarEmpresas() {
     const empresas = await masterRepository.listarEmpresas();
 
-    return empresas.map((empresa) => ({
-      id: empresa.id,
-      nome: empresa.nome,
-      cnpj: empresa.cnpj,
-      email: empresa.email,
-      telefone: empresa.telefone,
-      taxaJurosMes: Number(empresa.taxaJurosMes),
-      taxaMulta: Number(empresa.taxaMulta),
-      ativo: empresa.ativo,
-      criadoEm: empresa.criadoEm,
-      admin: empresa.usuarios[0] ?? null,
-      totais: empresa._count,
-      loginUrl: buildLoginHint(empresa.id),
-    }));
+    return empresas.map((empresa) => mapEmpresa(empresa));
   },
 
   async criarEmpresa(input: CriarEmpresaMasterInput) {
@@ -118,6 +109,7 @@ export const masterService = {
         telefone: input.telefone?.trim() || null,
         taxaJurosMes: input.taxaJurosMes ?? 30,
         taxaMulta: input.taxaMulta ?? 2,
+        plano: input.plano ?? PlanoEmpresa.BASICO,
         ativo: true,
       },
       temAdmin && senhaHash
@@ -159,6 +151,7 @@ export const masterService = {
       ...(input.taxaJurosMes !== undefined ? { taxaJurosMes: input.taxaJurosMes } : {}),
       ...(input.taxaMulta !== undefined ? { taxaMulta: input.taxaMulta } : {}),
       ...(input.ativo !== undefined ? { ativo: input.ativo } : {}),
+      ...(input.plano !== undefined ? { plano: input.plano } : {}),
     });
 
     return {
@@ -167,7 +160,237 @@ export const masterService = {
       ativo: empresa.ativo,
       taxaJurosMes: Number(empresa.taxaJurosMes),
       taxaMulta: Number(empresa.taxaMulta),
+      plano: empresa.plano,
     };
+  },
+
+  async excluirEmpresa(id: string, masterUsuarioId?: string, ip?: string) {
+    if (id === DEMO_EMPRESA_ID) {
+      throw new AppError('A empresa demo não pode ser excluída', 400);
+    }
+
+    const existente = await masterRepository.obterEmpresaPorId(id);
+    if (!existente) {
+      throw new AppError('Empresa não encontrada', 404);
+    }
+
+    await masterRepository.excluirEmpresa(id);
+    await logMasterAudit(masterUsuarioId, 'delete', 'empresas', { empresaId: id }, ip);
+    return { ok: true, message: `Empresa "${existente.nome}" excluída.` };
+  },
+
+  async clientesStats() {
+    return masterRepository.clientesStats();
+  },
+
+  async listarClientes(search?: string, status?: string, tipo: 'empresa' | 'usuario' = 'empresa') {
+    if (tipo === 'usuario') {
+      const data = await masterRepository.listarUsuariosPlataforma(search);
+      return { data, tipo: 'usuario' as const };
+    }
+
+    const empresas = await masterRepository.listarClientesEmpresas(search, status);
+    const data = empresas.map((empresa) => ({
+      id: empresa.id,
+      nome: empresa.nome,
+      email: empresa.email,
+      cnpj: empresa.cnpj,
+      plano: empresa.plano,
+      ativo: empresa.ativo,
+      criadoEm: empresa.criadoEm,
+      admin: empresa.usuarios[0] ?? null,
+      clientes_count: empresa._count.clientes,
+      usuarios_count: empresa._count.usuarios,
+      loginUrl: buildLoginHint(empresa.id),
+    }));
+
+    return { data, tipo: 'empresa' as const };
+  },
+
+  async atualizarCliente(
+    id: string,
+    input: { nome?: string; ativo?: boolean; plano?: PlanoEmpresa },
+    masterUsuarioId?: string,
+    ip?: string
+  ) {
+    if (id === DEMO_EMPRESA_ID && input.ativo === false) {
+      throw new AppError('A empresa demo não pode ser desativada', 400);
+    }
+
+    const empresa = await masterRepository.atualizarEmpresa(id, {
+      ...(input.nome !== undefined ? { nome: input.nome } : {}),
+      ...(input.ativo !== undefined ? { ativo: input.ativo } : {}),
+      ...(input.plano !== undefined ? { plano: input.plano } : {}),
+    });
+
+    await logMasterAudit(masterUsuarioId, 'update', 'clientes', { empresaId: id, ...input }, ip);
+
+    return {
+      id: empresa.id,
+      nome: empresa.nome,
+      ativo: empresa.ativo,
+      plano: empresa.plano,
+    };
+  },
+
+  async listarAssinaturas() {
+    const empresas = await masterRepository.listarEmpresas();
+    const assinaturas = empresas.map((empresa) => ({
+      id: empresa.id,
+      nome: empresa.nome,
+      plano: empresa.plano,
+      ativo: empresa.ativo,
+      criadoEm: empresa.criadoEm,
+      valor_mensal: PLANOS_PRECO[empresa.plano],
+    }));
+
+    const ativas = assinaturas.filter((a) => a.ativo);
+    const mrr = ativas.reduce((sum, a) => sum + a.valor_mensal, 0);
+
+    return {
+      assinaturas,
+      mrr,
+      arr: mrr * 12,
+      stats: {
+        total: assinaturas.length,
+        ativas: ativas.length,
+        inativas: assinaturas.length - ativas.length,
+      },
+      planos: PLANOS_PRECO,
+    };
+  },
+
+  async atualizarAssinatura(
+    id: string,
+    input: { plano?: PlanoEmpresa; ativo?: boolean },
+    masterUsuarioId?: string,
+    ip?: string
+  ) {
+    if (id === DEMO_EMPRESA_ID && input.ativo === false) {
+      throw new AppError('A empresa demo não pode ser desativada', 400);
+    }
+
+    const empresa = await masterRepository.atualizarEmpresa(id, {
+      ...(input.plano !== undefined ? { plano: input.plano } : {}),
+      ...(input.ativo !== undefined ? { ativo: input.ativo } : {}),
+    });
+
+    await logMasterAudit(masterUsuarioId, 'update', 'assinaturas', { empresaId: id, ...input }, ip);
+
+    return {
+      id: empresa.id,
+      nome: empresa.nome,
+      plano: empresa.plano,
+      ativo: empresa.ativo,
+      valor_mensal: PLANOS_PRECO[empresa.plano],
+    };
+  },
+
+  async financeiroResumo() {
+    const assinaturas = await this.listarAssinaturas();
+    const [pagarPendente, receberPendente, recebidoMes, despesasMes] = await Promise.all([
+      masterRepository.somarLancamentosPendentes(TipoLancamentoMaster.PAGAR),
+      masterRepository.somarLancamentosPendentes(TipoLancamentoMaster.RECEBER),
+      masterRepository.somarLancamentosPagosMes(TipoLancamentoMaster.RECEBER),
+      masterRepository.somarLancamentosPagosMes(TipoLancamentoMaster.PAGAR),
+    ]);
+
+    return {
+      mrr: assinaturas.mrr,
+      arr: assinaturas.arr,
+      empresas_ativas: assinaturas.stats.ativas,
+      empresas_total: assinaturas.stats.total,
+      contas_pagar_pendentes: pagarPendente,
+      contas_receber_pendentes: receberPendente,
+      recebido_mes: recebidoMes,
+      despesas_mes: despesasMes,
+      lucro_mes: recebidoMes - despesasMes,
+    };
+  },
+
+  async listarLancamentos(tipo: TipoLancamentoMaster) {
+    const data = await masterRepository.listarLancamentos(tipo);
+    return data.map(mapLancamento);
+  },
+
+  async criarLancamento(
+    input: {
+      tipo: TipoLancamentoMaster;
+      descricao: string;
+      valor: number;
+      vencimento: string;
+      empresaId?: string | null;
+    },
+    masterUsuarioId?: string,
+    ip?: string
+  ) {
+    const lancamento = await masterRepository.criarLancamento({
+      ...input,
+      vencimento: new Date(input.vencimento),
+    });
+    await logMasterAudit(masterUsuarioId, 'create', 'financeiro', { id: lancamento.id }, ip);
+    return mapLancamento(lancamento);
+  },
+
+  async atualizarLancamento(
+    id: string,
+    input: {
+      descricao?: string;
+      valor?: number;
+      vencimento?: string;
+      status?: 'PENDENTE' | 'PAGO' | 'CANCELADO';
+      empresaId?: string | null;
+    },
+    masterUsuarioId?: string,
+    ip?: string
+  ) {
+    const lancamento = await masterRepository.atualizarLancamento(id, {
+      ...(input.descricao !== undefined ? { descricao: input.descricao } : {}),
+      ...(input.valor !== undefined ? { valor: input.valor } : {}),
+      ...(input.vencimento !== undefined ? { vencimento: new Date(input.vencimento) } : {}),
+      ...(input.status !== undefined ? { status: input.status } : {}),
+      ...(input.empresaId !== undefined ? { empresaId: input.empresaId } : {}),
+    });
+    await logMasterAudit(masterUsuarioId, 'update', 'financeiro', { id, ...input }, ip);
+    return mapLancamento(lancamento);
+  },
+
+  async excluirLancamento(id: string, masterUsuarioId?: string, ip?: string) {
+    await masterRepository.excluirLancamento(id);
+    await logMasterAudit(masterUsuarioId, 'delete', 'financeiro', { id }, ip);
+    return { ok: true };
+  },
+
+  async listarPagamentosFinanceiro(limit = 30) {
+    const data = await masterRepository.listarPagamentosMaster(limit);
+    return data.map(mapLancamento);
+  },
+
+  async permissoesMeta() {
+    return getPermissionsMeta();
+  },
+
+  async listarPermissoes(perfil: string) {
+    const rows = await masterRepository.listarPermissoesPerfil(perfil);
+    return rows.map((row) => ({
+      perfil: row.perfil,
+      modulo: row.modulo,
+      acoes: row.acoes as string[],
+    }));
+  },
+
+  async atualizarPermissao(
+    input: { perfil: string; modulo: string; acoes: string[] },
+    masterUsuarioId?: string,
+    ip?: string
+  ) {
+    const row = await masterRepository.upsertPermissao(input.perfil, input.modulo, input.acoes);
+    await logMasterAudit(masterUsuarioId, 'update', 'permissoes', input, ip);
+    return { perfil: row.perfil, modulo: row.modulo, acoes: row.acoes as string[] };
+  },
+
+  async listarLogs(limit = 40, modulo?: string) {
+    return masterRepository.listarAuditLogs(limit, modulo);
   },
 
   async monitoramento() {
@@ -189,6 +412,41 @@ export const masterService = {
 function buildLoginHint(empresaId: string) {
   const base = (env.FRONTEND_URL?.split(',')[0] || 'http://localhost:5173').replace(/\/$/, '');
   return `${base}/login?empresaId=${empresaId}`;
+}
+
+function mapEmpresa(empresa: Awaited<ReturnType<typeof masterRepository.listarEmpresas>>[number]) {
+  return {
+    id: empresa.id,
+    nome: empresa.nome,
+    cnpj: empresa.cnpj,
+    email: empresa.email,
+    telefone: empresa.telefone,
+    taxaJurosMes: Number(empresa.taxaJurosMes),
+    taxaMulta: Number(empresa.taxaMulta),
+    plano: empresa.plano,
+    ativo: empresa.ativo,
+    criadoEm: empresa.criadoEm,
+    admin: empresa.usuarios[0] ?? null,
+    totais: empresa._count,
+    loginUrl: buildLoginHint(empresa.id),
+    valor_mensal: PLANOS_PRECO[empresa.plano],
+  };
+}
+
+function mapLancamento(
+  lancamento: Awaited<ReturnType<typeof masterRepository.listarLancamentos>>[number]
+) {
+  return {
+    id: lancamento.id,
+    tipo: lancamento.tipo,
+    descricao: lancamento.descricao,
+    valor: Number(lancamento.valor),
+    vencimento: lancamento.vencimento,
+    status: lancamento.status,
+    empresaId: lancamento.empresaId,
+    empresa: lancamento.empresa,
+    criadoEm: lancamento.criadoEm,
+  };
 }
 
 export async function bootstrapMasterUser() {
@@ -252,4 +510,5 @@ export async function bootstrapMasterUser() {
   });
 
   console.log('[Master] Usuário master sincronizado:', masterEmail);
+  await bootstrapMasterPermissions();
 }
