@@ -11,7 +11,7 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
   EVOLUTION_API_URL: z.string().optional(),
   EVOLUTION_API_KEY: z.string().optional(),
-  EVOLUTION_INSTANCE: z.string().default('sysjuros'),
+  EVOLUTION_INSTANCE: z.string().default('syscontabel'),
   FRONTEND_URL: z.string().optional(),
   MASTER_EMAIL: z.string().email().optional().or(z.literal('')),
   MASTER_PASSWORD: z.string().optional(),

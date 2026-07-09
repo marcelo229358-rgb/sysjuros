@@ -1,25 +1,25 @@
-# Evolution API — WhatsApp (SysJuros)
+# Evolution API — WhatsApp (SysContabel)
 # Uso: docker compose -f docker-compose.evolution.yml --env-file evolution.env up -d
 #
 # Depois:
 # 1. Acesse http://SEU_IP:3000 (Evolution Manager) ou API em :8080
-# 2. Escaneie o QR Code da instância "sysjuros"
+# 2. Escaneie o QR Code da instância "syscontabel"
 # 3. Configure no backend/.env ou .env.prod:
 #    EVOLUTION_API_URL=http://localhost:8080  (ou http://evolution-api:8080 no Docker)
 #    EVOLUTION_API_KEY=mesma chave abaixo
-#    EVOLUTION_INSTANCE=sysjuros
+#    EVOLUTION_INSTANCE=syscontabel
 
 services:
   evolution-redis:
     image: redis:7-alpine
-    container_name: sysjuros-evolution-redis
+    container_name: syscontabel-evolution-redis
     restart: unless-stopped
     networks:
       - evolution-net
 
   evolution-postgres:
     image: postgres:16-alpine
-    container_name: sysjuros-evolution-postgres
+    container_name: syscontabel-evolution-postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${EVOLUTION_POSTGRES_DB:-evolution}
@@ -32,7 +32,7 @@ services:
 
   evolution-api:
     image: evoapicloud/evolution-api:latest
-    container_name: sysjuros-evolution-api
+    container_name: syscontabel-evolution-api
     restart: unless-stopped
     depends_on:
       - evolution-redis
@@ -41,7 +41,7 @@ services:
       - "${EVOLUTION_PORT:-8080}:8080"
     environment:
       SERVER_URL: ${EVOLUTION_SERVER_URL:-http://localhost:8080}
-      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:-sysjuros-evolution-key}
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:-syscontabel-evolution-key}
       DATABASE_ENABLED: "true"
       DATABASE_PROVIDER: postgresql
       DATABASE_CONNECTION_URI: postgresql://${EVOLUTION_POSTGRES_USER:-evolution}:${EVOLUTION_POSTGRES_PASSWORD:-evolution123}@evolution-postgres:5432/${EVOLUTION_POSTGRES_DB:-evolution}?schema=public
@@ -56,7 +56,7 @@ services:
 
   evolution-manager:
     image: evoapicloud/evolution-manager:latest
-    container_name: sysjuros-evolution-manager
+    container_name: syscontabel-evolution-manager
     restart: unless-stopped
     depends_on:
       - evolution-api

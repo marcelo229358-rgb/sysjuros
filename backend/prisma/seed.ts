@@ -8,10 +8,10 @@ const DEMO_EMPRESA_ID = '1030c59f-503a-4dfc-ad8b-66c802060cd0';
 async function main() {
   const empresa = await prisma.empresa.upsert({
     where: { cnpj: '00000000000191' },
-    update: { taxaJurosMes: 30.0 },
+    update: { taxaJurosMes: 30.0, nome: 'Empresa Demo SysContabel' },
     create: {
       id: DEMO_EMPRESA_ID,
-      nome: 'Empresa Demo SysJuros',
+      nome: 'Empresa Demo SysContabel',
       cnpj: '00000000000191',
       email: 'contato@empresademo.com.br',
       telefone: '(11) 99999-0000',

@@ -23,7 +23,7 @@ export function DashboardLayout() {
   const titulo =
     location.pathname.startsWith('/contratos/') && location.pathname !== '/contratos'
       ? 'Detalhe do contrato'
-      : titulos[basePath] ?? 'SysJuros';
+      : titulos[basePath] ?? 'SysContabel';
 
   return (
     <div className="app-layout d-flex min-vh-100 w-100">
@@ -36,7 +36,7 @@ export function DashboardLayout() {
         className="sidebar-offcanvas d-md-none"
       >
         <Offcanvas.Header closeButton className="border-bottom">
-          <Offcanvas.Title className="fw-bold text-primary">SysJuros</Offcanvas.Title>
+          <Offcanvas.Title className="fw-bold text-primary">SysContabel</Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body className="p-3">
           <SidebarNav onNavigate={() => setMenuAberto(false)} mostrarBrand={false} />

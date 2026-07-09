@@ -107,7 +107,7 @@ export const masterService = {
 
     const empresaEmail =
       input.email?.trim().toLowerCase() ||
-      (temAdmin ? adminEmail : `contato-${Date.now()}@sysjuros.local`);
+      (temAdmin ? adminEmail : `contato-${Date.now()}@syscontabel.local`);
 
     const senhaHash = temAdmin ? await hashPassword(adminSenha) : undefined;
     const empresa = await masterRepository.criarEmpresaComAdmin(
@@ -200,15 +200,20 @@ export async function bootstrapMasterUser() {
   const masterEmail = getMasterEmail();
   const senhaHash = await hashPassword(env.MASTER_PASSWORD!);
 
-  let empresaPlataforma = await prisma.empresa.findFirst({
+  await prisma.empresa.updateMany({
     where: { nome: 'Plataforma SysJuros' },
+    data: { nome: 'Plataforma SysContabel' },
+  });
+
+  let empresaPlataforma = await prisma.empresa.findFirst({
+    where: { nome: 'Plataforma SysContabel' },
     select: { id: true },
   });
 
   if (!empresaPlataforma) {
     empresaPlataforma = await prisma.empresa.create({
       data: {
-        nome: 'Plataforma SysJuros',
+        nome: 'Plataforma SysContabel',
         email: masterEmail,
         ativo: true,
       },
@@ -229,7 +234,7 @@ export async function bootstrapMasterUser() {
       },
     },
     update: {
-      nome: 'Master SysJuros',
+      nome: 'Master SysContabel',
       senhaHash,
       isMaster: true,
       ativo: true,
@@ -237,7 +242,7 @@ export async function bootstrapMasterUser() {
     },
     create: {
       empresaId: empresaPlataforma.id,
-      nome: 'Master SysJuros',
+      nome: 'Master SysContabel',
       email: masterEmail,
       senhaHash,
       isMaster: true,

@@ -1,4 +1,4 @@
-# SysJuros — Frontend (Fase 4)
+# SysContabel — Frontend
 
 React + TypeScript + Bootstrap 5 + Recharts
 

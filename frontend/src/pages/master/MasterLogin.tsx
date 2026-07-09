@@ -40,7 +40,7 @@ export function MasterLogin() {
       <Card className="master-login-card shadow w-100">
         <Card.Body className="p-4">
           <h3 className="text-center mb-1" style={{ color: '#c9a962' }}>
-            SysJuros Master
+            SysContabel Master
           </h3>
           <p className="text-center text-muted mb-4">Painel da plataforma — criar novas empresas</p>
           {erro && <div className="alert alert-danger py-2">{erro}</div>}

@@ -1,5 +1,5 @@
 # =============================================================================
-# SysJuros — Docker Compose (produção)
+# SysContabel — Docker Compose (produção)
 # VPS com Nginx Proxy Manager na rede externa "proxy-network"
 #
 # Uso:
@@ -7,8 +7,8 @@
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 #
 # NPM (Proxy Hosts):
-#   Frontend → http://sysjuros-frontend:80
-#   API      → http://sysjuros-backend:3333
+#   Frontend → http://syscontabel-frontend:80
+#   API      → http://syscontabel-backend:3333
 # =============================================================================
 
 services:
@@ -17,7 +17,7 @@ services:
   # ---------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
-    container_name: sysjuros-postgres
+    container_name: syscontabel-postgres
     restart: always
     networks:
       - proxy-network
@@ -41,7 +41,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: sysjuros-backend
+    container_name: syscontabel-backend
     restart: always
     networks:
       - proxy-network
@@ -82,7 +82,7 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL}
         VITE_EMPRESA_ID: ${VITE_EMPRESA_ID}
-    container_name: sysjuros-frontend
+    container_name: syscontabel-frontend
     restart: always
     networks:
       - proxy-network
@@ -104,4 +104,4 @@ networks:
 
 volumes:
   postgres_data:
-    name: sysjuros_postgres_data
+    name: syscontabel_postgres_data

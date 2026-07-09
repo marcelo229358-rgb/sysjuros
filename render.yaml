@@ -1,16 +1,16 @@
-# SysJuros — deploy na Render (teste gratuito)
+# SysContabel — deploy na Render (teste gratuito)
 # https://render.com/docs/blueprint-spec
 
 databases:
-  - name: sysjuros-db
+  - name: syscontabel-db
     plan: free
-    databaseName: sysjuros
-    user: sysjuros
+    databaseName: syscontabel
+    user: syscontabel
 
 services:
   # API Node.js
   - type: web
-    name: sysjuros-api
+    name: syscontabel-api
     runtime: node
     rootDir: backend
     plan: free
@@ -22,7 +22,7 @@ services:
         value: production
       - key: DATABASE_URL
         fromDatabase:
-          name: sysjuros-db
+          name: syscontabel-db
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
@@ -31,7 +31,7 @@ services:
       - key: FRONTEND_URL
         fromService:
           type: web
-          name: sysjuros-web
+          name: syscontabel-web
           envVarKey: RENDER_EXTERNAL_URL
       # WhatsApp (opcional — aponte para Evolution API externa, ex. Hostinger)
       - key: EVOLUTION_API_URL
@@ -39,11 +39,11 @@ services:
       - key: EVOLUTION_API_KEY
         sync: false
       - key: EVOLUTION_INSTANCE
-        value: sysjuros
+        value: syscontabel
 
   # Frontend React (site estático)
   - type: web
-    name: sysjuros-web
+    name: syscontabel-web
     runtime: static
     rootDir: frontend
     buildCommand: npm ci && npm run build
@@ -53,7 +53,7 @@ services:
       - key: VITE_API_URL
         fromService:
           type: web
-          name: sysjuros-api
+          name: syscontabel-api
           envVarKey: RENDER_EXTERNAL_URL
       - key: VITE_EMPRESA_ID
         value: 1030c59f-503a-4dfc-ad8b-66c802060cd0

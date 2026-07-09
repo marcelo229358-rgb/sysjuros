@@ -1,4 +1,4 @@
-# SysJuros
+# SysContabel
 
 Sistema de Controle de Cobranças e Juros — multi-tenant, com backend Node.js + Prisma + PostgreSQL e frontend React + Bootstrap 5.
 

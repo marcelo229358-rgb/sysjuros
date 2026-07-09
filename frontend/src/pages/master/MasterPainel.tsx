@@ -139,7 +139,7 @@ export function MasterPainel() {
   return (
     <div className="master-shell">
       <header className="master-header">
-        <h1>Plataforma Master — SysJuros</h1>
+        <h1>Plataforma Master — SysContabel</h1>
         <div className="d-flex align-items-center gap-2">
           <span className="text-muted small">{user?.email}</span>
           <Button variant="outline-light" size="sm" onClick={handleLogout}>
@@ -259,7 +259,7 @@ export function MasterPainel() {
               </div>
 
               <div className="master-card">
-                <h2>Nova empresa SysJuros</h2>
+                <h2>Nova empresa SysContabel</h2>
                 <Form className="master-form" onSubmit={handleCriarEmpresa}>
                   <Form.Group>
                     <Form.Label>Nome da empresa</Form.Label>

@@ -1,14 +1,14 @@
 # Deploy na Render (teste gratuito)
 
-Guia para publicar o SysJuros na [Render](https://render.com) antes de migrar para a Hostinger.
+Guia para publicar o SysContabel na [Render](https://render.com) antes de migrar para a Hostinger.
 
 ## O que será criado
 
 | Serviço | Tipo | Nome |
 |---------|------|------|
-| PostgreSQL | Banco free | `sysjuros-db` |
-| Backend API | Web Node | `sysjuros-api` |
-| Frontend | Static Site | `sysjuros-web` |
+| PostgreSQL | Banco free | `syscontabel-db` |
+| Backend API | Web Node | `syscontabel-api` |
+| Frontend | Static Site | `syscontabel-web` |
 
 ## Pré-requisitos
 
@@ -21,11 +21,11 @@ Guia para publicar o SysJuros na [Render](https://render.com) antes de migrar pa
 ### 1. Subir o código no GitHub
 
 ```bash
-cd sysjuros
+cd syscontabel
 git init
 git add .
 git commit -m "Deploy Render"
-git remote add origin https://github.com/SEU_USUARIO/sysjuros.git
+git remote add origin https://github.com/SEU_USUARIO/syscontabel.git
 git push -u origin main
 ```
 
@@ -41,9 +41,9 @@ O deploy leva alguns minutos. O backend roda migrations + seed automaticamente.
 
 ### 3. URLs após o deploy
 
-- **Frontend:** `https://sysjuros-web.onrender.com`
-- **API:** `https://sysjuros-api.onrender.com`
-- **Health:** `https://sysjuros-api.onrender.com/health`
+- **Frontend:** `https://syscontabel-web.onrender.com`
+- **API:** `https://syscontabel-api.onrender.com`
+- **Health:** `https://syscontabel-api.onrender.com/health`
 
 ### 4. Login de teste
 
@@ -57,13 +57,13 @@ O ID da empresa é fixo no seed — o mesmo valor já está no build do frontend
 
 ## Variáveis de ambiente (opcionais)
 
-No painel da Render → serviço **sysjuros-api** → **Environment**:
+No painel da Render → serviço **syscontabel-api** → **Environment**:
 
 | Variável | Descrição |
 |----------|-----------|
 | `EVOLUTION_API_URL` | URL da Evolution API (WhatsApp) — ex. VPS Hostinger |
 | `EVOLUTION_API_KEY` | Chave da instância |
-| `EVOLUTION_INSTANCE` | Nome da instância (padrão: `sysjuros`) |
+| `EVOLUTION_INSTANCE` | Nome da instância (padrão: `syscontabel`) |
 
 O WhatsApp **não roda na Render** no plano free. Configure a Evolution API em outro servidor e aponte essas variáveis para lá.
 
@@ -93,7 +93,7 @@ Quando os testes estiverem ok:
 ## Troubleshooting
 
 ### Login não funciona
-- Verifique se o deploy do **sysjuros-api** terminou sem erro
+- Verifique se o deploy do **syscontabel-api** terminou sem erro
 - Confira logs: `prisma migrate deploy` e `prisma db seed` devem aparecer no start
 
 ### CORS / frontend não conecta na API

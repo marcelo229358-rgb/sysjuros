@@ -1,4 +1,4 @@
-# SysJuros — Backend (Fase 1 + 2 + 3)
+# SysContabel — Backend
 
 Sistema de Controle de Cobranças e Juros — API multi-tenant com Node.js, Express, TypeScript, Prisma e PostgreSQL.
 

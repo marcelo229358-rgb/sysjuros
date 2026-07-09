@@ -17,7 +17,7 @@ export const masterRepository = {
 
   async listarEmpresas() {
     return prisma.empresa.findMany({
-      where: { nome: { not: 'Plataforma SysJuros' } },
+      where: { nome: { notIn: ['Plataforma SysJuros', 'Plataforma SysContabel'] } },
       orderBy: { criadoEm: 'desc' },
       include: {
         _count: {

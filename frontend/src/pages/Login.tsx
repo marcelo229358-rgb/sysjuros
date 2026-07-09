@@ -42,7 +42,7 @@ export function Login() {
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-body-tertiary px-3">
       <Card className="shadow w-100 login-card">
         <Card.Body className="p-4">
-          <h3 className="text-center text-primary mb-1">SysJuros</h3>
+          <h3 className="text-center text-primary mb-1">SysContabel</h3>
           <p className="text-center text-muted mb-4">Controle de cobranças e juros</p>
           {erro && <div className="alert alert-danger">{erro}</div>}
           <Form onSubmit={handleSubmit}>

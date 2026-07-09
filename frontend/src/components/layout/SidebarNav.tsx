@@ -43,7 +43,7 @@ export function SidebarNav({ onNavigate, mostrarBrand = true }: Props) {
     <>
       {mostrarBrand && (
         <div className="mb-4">
-          <h5 className="fw-bold text-primary mb-0">SysJuros</h5>
+          <h5 className="fw-bold text-primary mb-0">SysContabel</h5>
           <small className="text-muted">Controle de cobranças</small>
         </div>
       )}
