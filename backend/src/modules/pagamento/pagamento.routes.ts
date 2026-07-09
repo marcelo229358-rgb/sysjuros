@@ -4,10 +4,11 @@ import { pagamentoController } from './pagamento.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { tenantMiddleware } from '../../middlewares/tenant.middleware';
 import { auditLogMiddleware } from '../../middlewares/auditLog.middleware';
+import { senhaAtualizadaMiddleware } from '../../middlewares/senhaAtualizada.middleware';
 
 export const pagamentoRoutes = Router();
 
-pagamentoRoutes.use(authMiddleware, tenantMiddleware);
+pagamentoRoutes.use(authMiddleware, tenantMiddleware, senhaAtualizadaMiddleware);
 
 pagamentoRoutes.post(
   '/',

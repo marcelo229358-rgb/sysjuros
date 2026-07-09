@@ -11,6 +11,7 @@ import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 import { notificacaoRoutes } from './modules/notificacao/notificacao.routes';
 import { pdfRoutes } from './modules/pdf/pdf.routes';
 import { masterRoutes } from './modules/master/master.routes';
+import { usuarioRoutes } from './modules/usuario/usuario.routes';
 import { errorHandlerMiddleware } from './middlewares/errorHandler.middleware';
 import { AppError } from './shared/errors/AppError';
 
@@ -43,6 +44,7 @@ app.use('/pagamentos', pagamentoRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/notificacoes', notificacaoRoutes);
 app.use('/pdf', pdfRoutes);
+app.use('/usuarios', usuarioRoutes);
 app.use('/master', masterRoutes);
 
 app.use((_req, _res, next) => {

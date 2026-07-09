@@ -28,8 +28,8 @@ export function Login() {
     setErro('');
     setCarregando(true);
     try {
-      await login(email, senha, empresaId);
-      navigate('/dashboard');
+      const usuarioLogado = await login(email, senha, empresaId);
+      navigate(usuarioLogado.deveAlterarSenha ? '/alterar-senha' : '/dashboard');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setErro(msg ?? 'Credenciais inválidas');

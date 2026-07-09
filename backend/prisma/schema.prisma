@@ -57,8 +57,9 @@ model Usuario {
   email         String
   senhaHash     String
   perfil        PerfilUsuario @default(OPERADOR)
-  isMaster      Boolean       @default(false)
-  ativo         Boolean       @default(true)
+  isMaster         Boolean       @default(false)
+  ativo            Boolean       @default(true)
+  deveAlterarSenha Boolean       @default(false)
   criadoEm      DateTime      @default(now())
   atualizadoEm  DateTime      @updatedAt
 

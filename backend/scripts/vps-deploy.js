@@ -15,6 +15,11 @@ grep -q '^EVOLUTION_API_KEY=' .env.prod || echo 'EVOLUTION_API_KEY=syscontabel-e
 grep -q '^EVOLUTION_INSTANCE=' .env.prod || echo 'EVOLUTION_INSTANCE=syscontabel' >> .env.prod
 sed -i 's/^MASTER_EMAIL=.*/MASTER_EMAIL=marcelo229358@gmail.com/' .env.prod || true
 sed -i 's/^MASTER_PASSWORD=.*/MASTER_PASSWORD=motogp1020/' .env.prod || true
+sed -i 's|^EVOLUTION_API_URL=.*|EVOLUTION_API_URL=http://syscontabel-evolution-api:8080|' .env.prod || true
+sed -i 's/^EVOLUTION_INSTANCE=.*/EVOLUTION_INSTANCE=syscontabel/' .env.prod || true
+
+sed -i 's/sysjuros-evolution-key/syscontabel-evolution-key/g' evolution.env 2>/dev/null || true
+sed -i 's/EVOLUTION_INSTANCE=sysjuros/EVOLUTION_INSTANCE=syscontabel/' evolution.env 2>/dev/null || true
 
 docker compose -f docker-compose.evolution.yml --env-file evolution.env up -d
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build

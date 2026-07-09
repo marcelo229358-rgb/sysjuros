@@ -5,10 +5,11 @@ import { authMiddleware } from '../../middlewares/auth.middleware';
 import { tenantMiddleware } from '../../middlewares/tenant.middleware';
 import { permissaoMiddleware } from '../../middlewares/permissao.middleware';
 import { auditLogMiddleware } from '../../middlewares/auditLog.middleware';
+import { senhaAtualizadaMiddleware } from '../../middlewares/senhaAtualizada.middleware';
 
 export const empresaRoutes = Router();
 
-empresaRoutes.use(authMiddleware, tenantMiddleware);
+empresaRoutes.use(authMiddleware, tenantMiddleware, senhaAtualizadaMiddleware);
 
 empresaRoutes.get('/configuracoes', (req, res) =>
   empresaController.obterConfiguracoes(req, res)

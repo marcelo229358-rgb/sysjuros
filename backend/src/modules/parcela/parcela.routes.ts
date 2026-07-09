@@ -4,11 +4,12 @@ import { parcelaController } from './parcela.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { tenantMiddleware } from '../../middlewares/tenant.middleware';
 import { auditLogMiddleware } from '../../middlewares/auditLog.middleware';
+import { senhaAtualizadaMiddleware } from '../../middlewares/senhaAtualizada.middleware';
 import { getRouteParam } from '../../shared/utils/request.util';
 
 export const parcelaRoutes = Router();
 
-parcelaRoutes.use(authMiddleware, tenantMiddleware);
+parcelaRoutes.use(authMiddleware, tenantMiddleware, senhaAtualizadaMiddleware);
 
 parcelaRoutes.get('/vencidas', (req, res, next) =>
   parcelaController.listarVencidas(req, res).catch(next)

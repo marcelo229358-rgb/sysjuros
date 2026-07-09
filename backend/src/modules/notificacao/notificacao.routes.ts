@@ -5,10 +5,11 @@ import { authMiddleware } from '../../middlewares/auth.middleware';
 import { tenantMiddleware } from '../../middlewares/tenant.middleware';
 import { permissaoMiddleware } from '../../middlewares/permissao.middleware';
 import { auditLogMiddleware } from '../../middlewares/auditLog.middleware';
+import { senhaAtualizadaMiddleware } from '../../middlewares/senhaAtualizada.middleware';
 
 export const notificacaoRoutes = Router();
 
-notificacaoRoutes.use(authMiddleware, tenantMiddleware);
+notificacaoRoutes.use(authMiddleware, tenantMiddleware, senhaAtualizadaMiddleware);
 
 notificacaoRoutes.get('/', (req, res, next) =>
   notificacaoController.listar(req, res).catch(next)

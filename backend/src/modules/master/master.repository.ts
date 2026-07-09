@@ -71,6 +71,7 @@ export const masterRepository = {
             email: admin.email,
             senhaHash: admin.senhaHash,
             perfil: 'ADMIN',
+            deveAlterarSenha: true,
           },
         });
       }

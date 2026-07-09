@@ -8,6 +8,9 @@ export interface Usuario {
   email: string;
   perfil: PerfilUsuario;
   empresaId: string;
+  deveAlterarSenha?: boolean;
+  ativo?: boolean;
+  criadoEm?: string;
 }
 
 export interface Empresa {

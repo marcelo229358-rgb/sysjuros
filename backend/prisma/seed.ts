@@ -29,7 +29,7 @@ async function main() {
         email: 'admin@empresademo.com.br',
       },
     },
-    update: {},
+    update: { deveAlterarSenha: false },
     create: {
       empresaId: empresa.id,
       nome: 'Administrador',
@@ -37,6 +37,7 @@ async function main() {
       senhaHash,
       perfil: PerfilUsuario.ADMIN,
       ativo: true,
+      deveAlterarSenha: false,
     },
   });
 

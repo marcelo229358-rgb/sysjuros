@@ -2,10 +2,11 @@ import { Router } from 'express';
 import { dashboardController } from './dashboard.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { tenantMiddleware } from '../../middlewares/tenant.middleware';
+import { senhaAtualizadaMiddleware } from '../../middlewares/senhaAtualizada.middleware';
 
 export const dashboardRoutes = Router();
 
-dashboardRoutes.use(authMiddleware, tenantMiddleware);
+dashboardRoutes.use(authMiddleware, tenantMiddleware, senhaAtualizadaMiddleware);
 
 dashboardRoutes.get('/resumo', (req, res, next) =>
   dashboardController.resumo(req, res).catch(next)

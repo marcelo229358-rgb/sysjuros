@@ -11,4 +11,9 @@ export const authApi = {
     const response = await api.get<Usuario>('/auth/me');
     return response.data;
   },
+
+  alterarSenha: async (data: { senhaAtual: string; senhaNova: string; confirmarSenha: string }) => {
+    const response = await api.post<Usuario>('/auth/alterar-senha', data);
+    return response.data;
+  },
 };

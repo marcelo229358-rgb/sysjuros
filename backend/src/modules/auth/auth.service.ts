@@ -1,8 +1,8 @@
 import { usuarioRepository } from '../usuario/usuario.repository';
-import { comparePassword } from '../../shared/utils/hash.util';
+import { comparePassword, hashPassword } from '../../shared/utils/hash.util';
 import { signToken } from '../../shared/utils/jwt.util';
 import { AppError } from '../../shared/errors/AppError';
-import { LoginInput } from './auth.dto';
+import { AlterarSenhaInput, LoginInput } from './auth.dto';
 
 export const authService = {
   async login(input: LoginInput) {
@@ -36,6 +36,7 @@ export const authService = {
         email: usuario.email,
         perfil: usuario.perfil,
         empresaId: usuario.empresaId,
+        deveAlterarSenha: usuario.deveAlterarSenha,
       },
       empresa: {
         id: usuario.empresa.id,
@@ -54,5 +55,36 @@ export const authService = {
     }
 
     return usuario;
+  },
+
+  async alterarSenha(usuarioId: string, empresaId: string, input: AlterarSenhaInput) {
+    const registro = await usuarioRepository.findAuthByIdAndEmpresa(usuarioId, empresaId);
+
+    if (!registro) {
+      throw new AppError('Usuário não encontrado', 404);
+    }
+
+    const senhaValida = await comparePassword(input.senhaAtual, registro.senhaHash);
+
+    if (!senhaValida) {
+      throw new AppError('Senha atual incorreta', 400);
+    }
+
+    const mesmaSenha = await comparePassword(input.senhaNova, registro.senhaHash);
+
+    if (mesmaSenha) {
+      throw new AppError('A nova senha deve ser diferente da senha atual', 400);
+    }
+
+    const senhaHash = await hashPassword(input.senhaNova);
+
+    const atualizado = await usuarioRepository.atualizarSenha(usuarioId, empresaId, senhaHash, false);
+
+    if (!atualizado) {
+      throw new AppError('Usuário não encontrado', 404);
+    }
+
+    const { deveAlterarSenha, ...usuario } = atualizado;
+    return { ...usuario, deveAlterarSenha };
   },
 };
