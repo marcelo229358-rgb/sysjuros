@@ -44,7 +44,9 @@ services:
     container_name: syscontabel-backend
     restart: always
     networks:
-      - proxy-network
+      proxy-network:
+        aliases:
+          - sysjuros-backend
     depends_on:
       postgres:
         condition: service_healthy
@@ -89,6 +91,10 @@ services:
         aliases:
           - sysjuros-frontend
     depends_on:
+      backend:
+        condition: service_healthy
+    expose:
+      - '80'
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://localhost/']
       interval: 30s
